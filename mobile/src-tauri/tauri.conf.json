@@ -1,0 +1,38 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Board",
+  "version": "0.1.0",
+  "identifier": "site.thite.board.ios",
+  "build": {
+    "frontendDist": "https://board.thite.site",
+    "devUrl": "https://board.thite.site"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Board",
+        "url": "https://board.thite.site"
+      }
+    ],
+    "security": {
+      "csp": null
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "icon": [
+      "icons/32x32.png",
+      "icons/128x128.png",
+      "icons/128x128@2x.png"
+    ],
+    "category": "Productivity",
+    "shortDescription": "Live iOS shell for board.thite.site",
+    "longDescription": "Thin Tauri wrapper around the Board web app. Loads the live site each launch, so every Cloudflare Pages deploy ships to iPhone automatically.",
+    "iOS": {
+      "minimumSystemVersion": "14.0",
+      "developmentTeam": "2EJKM9WA68"
+    }
+  }
+}

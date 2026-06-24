@@ -1,0 +1,3142 @@
+/* Board styles — D-030: light-NERV skin (engineering paper edition).
+ * Cream paper, walnut ink, rust hairlines, amber on engage. Sharp 2px corners
+ * on chrome (notes stay rectangular). Two-color mono count readout.
+ * The pastel tag-background system (lib/colors.ts:TAG_BG) keeps working as-is
+ * because it was always calibrated for a cream-ish page.
+ *
+ * Keep this file in lockstep with the constants in src/lib/measure.ts:
+ *   NOTE_PADDING_X / NOTE_PADDING_Y / NOTE_CAPTION_HEIGHT / NOTE_TEXT_SIZE / NOTE_LINE_HEIGHT.
+ */
+
+:root {
+  /* Paper + ink */
+  --bg:         #FAF8F3;        /* warm cream paper (not stone-50, too cold) */
+  --paper:      #FFFFFF;        /* crisp white surface for inputs/panels on cream */
+  --paper-2:    #EFEAD9;        /* aged-book paper for tag-less note bg. Desaturated 2026-05-28 (D-037): was #F3EAD0 (chroma 16) which read yellow loud enough to compete with ink for attention given ~98% of notes are untagged and tile this surface. Now chroma ~8 — still warm, no longer shouting. */
+  --ink:        #241A12;        /* deep walnut, NOT plain black */
+  --ink-2:      #4B3A2D;
+  --ink-3:      #78635A;        /* warm taupe (replaces cool stone) */
+  --ink-4:      #A89484;
+
+  /* Hairlines — the rust border family that does what glows do in dark NERV */
+  --rust:       #B45D1F;
+  --rule:       rgba(180,93,31,0.12);   /* idle hairlines (was stone-200) */
+  --rule-2:     rgba(180,93,31,0.22);   /* slightly emphatic hairlines (was stone-300) */
+  --shadow-warm: 0 2px 8px rgba(140,71,22,0.08);
+
+  /* Accents — one engage hue, one readout hue. Never softened. */
+  --amber:      #1F5E9C;        /* active/focus/badge. Blueprint-blue engage accent. */
+  --amber-tint: #DDEBF6;        /* subtle hover wash */
+  --teal:       #0F766E;        /* match-count cyan (reuses board tag color) */
+
+  /* Back-compat shim: previously `--swiss-red` was used as the single brand
+   * accent. Anywhere old CSS still resolves `var(--swiss-red)` it now picks
+   * up the engage accent instead. Drop after a week. */
+  --swiss-red:  var(--amber);
+
+  --sans:       'Inter', system-ui, -apple-system, sans-serif;
+  --mono:       'JetBrains Mono', 'SF Mono', monospace;
+}
+
+/* Dark mode — "dark NERV" companion to the light walnut/cream skin.
+ * Same warm hue family, inverted lightness. Amber and teal already carry
+ * enough chroma to engage on the dark field; rust hairlines stay rust.
+ * Toggle via `<html data-theme="dark">`; persisted in localStorage by
+ * src/header.ts. Falls back to prefers-color-scheme on first load. */
+[data-theme="dark"] {
+  --bg:         #14110d;        /* dark walnut field */
+  --paper:      #1f1a14;        /* panel/input surface */
+  --paper-2:    #2a221a;        /* aged-book note bg, dark edition */
+  --ink:        #f1e7d6;        /* warm cream text */
+  --ink-2:      #c9bca9;
+  --ink-3:      #948472;        /* muted taupe */
+  --ink-4:      #6a5d50;
+
+  --rust:       #d27a3a;        /* slightly brighter rust so hairlines still register */
+  --rule:       rgba(210,122,58,0.18);
+  --rule-2:     rgba(210,122,58,0.32);
+  --shadow-warm: 0 2px 10px rgba(0,0,0,0.45);
+
+  --amber:      #60A5FA;
+  --amber-tint: rgba(96,165,250,0.18);
+  --teal:       #2dd4bf;        /* lift teal for legibility on dark */
+}
+
+/* --- Layout shell --- */
+
+.board {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 48px 96px;
+  position: relative;
+}
+
+/* --- Header (D-029: one row, three controls) ---
+ * No masthead. No labels. One row with search + plus + filter. Write panel
+ * and pills panel open below the row when toggled. */
+
+.header { margin: 0 0 28px; }
+
+.header-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+  height: 44px;
+}
+
+/* Search box — primary surface. Crisp white on cream, sharp 2px corners.
+ * Focus state crisps up the hairline (1px rust @ low op → 1px rust full op)
+ * + tiny warm shadow. Affordance is in the crispness, not a thicker border. */
+.searchbox {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 20px;                 /* horizontal gutter matches .note (NOTE_PADDING_X=20). Aligns the icon/text inside the bar with the text inside note cards. */
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  transition: border-color .12s, box-shadow .12s;
+}
+.searchbox:focus-within {
+  border-color: var(--rust);
+  box-shadow: var(--shadow-warm);
+}
+.searchbox::before {
+  content: '';
+  width: 14px; height: 14px;
+  background: currentColor;
+  -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='7' cy='7' r='5' fill='none' stroke='black' stroke-width='1.5'/><path d='M11 11l3 3' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/></svg>") center / contain no-repeat;
+          mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='7' cy='7' r='5' fill='none' stroke='black' stroke-width='1.5'/><path d='M11 11l3 3' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/></svg>") center / contain no-repeat;
+  color: var(--amber);            /* accent magnifier, NOT muted grey */
+  flex: none;
+}
+.searchbox input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  outline: none;
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 400;
+  color: var(--ink);
+  padding: 0;
+  height: 100%;
+}
+.searchbox input::placeholder { color: var(--ink-4); }
+.searchbox input::-webkit-search-cancel-button { display: none }
+/* Two-color instrument readout: matched count in teal, total in muted taupe.
+ * Reads as a sensor display rather than a vanity badge. The DOM structure
+ * comes from header.ts:
+ *   <span class="searchbox-count"><span class="matched">N</span> / TOTAL</span>
+ */
+.searchbox-count {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--ink-3);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.searchbox-count .matched { color: var(--teal); font-weight: 600; }
+.searchbox-count:empty { display: none }
+
+/* Icon buttons — sharp 2px corners, rust hairline at idle, rust on hover.
+ * Active state is the ONLY place amber gets used as a fill (D-030): solid amber
+ * background, cream icon. Tells you "this is actively engaged." */
+.iconbtn {
+  position: relative;
+  flex: none;
+  width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  color: var(--ink-2);
+  cursor: pointer;
+  transition: all .12s;
+  padding: 0;
+}
+.iconbtn:hover { border-color: var(--rust); color: var(--rust); }
+.iconbtn:active { transform: translateY(1px); }
+.agent-mode-btn {
+  width: 44px;
+  min-width: 44px;
+  padding: 0 5px;
+  font: 9px/1 var(--mono);
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+.iconbtn.active {
+  background: var(--amber);
+  border-color: var(--amber);
+  color: var(--bg);                /* cream icon on amber fill */
+}
+/* Filter badge: sharp amber square (1px corner), NOT a red circle. */
+.iconbtn-badge {
+  position: absolute;
+  top: -5px; right: -5px;
+  min-width: 14px; height: 14px;
+  padding: 0 3px;
+  background: var(--amber);
+  color: var(--bg);                /* cream digit */
+  border-radius: 1px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 600;
+  line-height: 14px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+.iconbtn-badge:empty { display: none }
+.iconbtn.has-active { color: var(--amber); }
+.iconbtn.has-active.active { color: var(--bg); }
+
+/* Write panel — opens below the row when + is clicked.
+ * Amber top rule = the "active surface" signal. Subtle warm shadow lifts the
+ * panel just enough to read as raised without floating. */
+.write-panel {
+  margin-top: 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-top: 1px solid var(--amber);
+  border-radius: 2px;
+  padding: 14px 16px 10px;
+  box-shadow: var(--shadow-warm);
+}
+.write-panel.expanded {
+  position: fixed;
+  z-index: 80;
+  inset: max(16px, env(safe-area-inset-top)) max(16px, env(safe-area-inset-right)) max(16px, env(safe-area-inset-bottom)) max(16px, env(safe-area-inset-left));
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  padding: clamp(18px, 4vw, 44px);
+  box-shadow: 0 24px 80px color-mix(in srgb, var(--ink) 24%, transparent);
+}
+.write-panel-head {
+  display: none;
+  margin-bottom: 18px;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--ink-4);
+}
+.write-panel-head span:first-child { color: var(--ink); font-weight: 700; }
+.write-panel-head span + span { margin-left: 12px; }
+.write-panel.expanded .write-panel-head { display: block; }
+.write-panel-body { width: 100%; }
+.write-panel-body--stacked {
+  display: grid;
+  gap: 10px;
+}
+.write-panel.expanded .write-panel-body {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+.write-panel.expanded .write-panel-body--stacked {
+  display: grid;
+  justify-content: stretch;
+  align-content: start;
+  gap: 12px;
+}
+.write-panel.expanded.similar-open .write-panel-body {
+  display: grid;
+  grid-template-columns: minmax(0, 72ch) minmax(220px, 280px);
+  gap: clamp(20px, 4vw, 44px);
+  align-items: stretch;
+}
+.write-panel.expanded.similar-open .write-panel-body--stacked {
+  grid-template-columns: 1fr;
+}
+.write-panel textarea,
+.write-panel input[type="url"] {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 0;
+  min-height: 1.5em;
+  overflow: hidden;
+}
+.write-panel input[type="url"]::placeholder,
+.write-panel textarea::placeholder {
+  color: var(--ink-4);
+}
+.write-panel.expanded textarea {
+  flex: 1;
+  max-width: 72ch;
+  height: 100%;
+  margin: 0 auto;
+  font-size: clamp(18px, 1.8vw, 24px);
+  line-height: 1.65;
+  overflow: auto;
+}
+.write-panel.expanded.similar-open textarea { max-width: none; }
+.write-panel textarea::placeholder { color: var(--ink-4); }
+.write-panel .panel-foot {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-4);
+}
+.write-panel .panel-hint { flex: none; }
+.write-panel .panel-stats { color: var(--ink-3); white-space: nowrap; }
+.write-panel .panel-hint kbd {
+  font-family: var(--mono);
+  padding: 1px 4px;
+  border: 1px solid var(--rule-2);
+  border-bottom-width: 2px;
+  border-radius: 1px;
+  font-size: 9px;
+  color: var(--ink-2);
+  background: var(--bg);
+  margin: 0 1px;
+}
+.write-panel .panel-status { color: var(--amber); opacity: 0; transition: opacity .18s; font-weight: 600; flex: 1; text-align: right; }
+.write-panel .panel-status.show { opacity: 1 }
+.panel-link {
+  appearance: none;
+  flex: none;
+  background: transparent;
+  border: 0;
+  color: var(--ink-3);
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: lowercase;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.panel-link:hover { color: var(--amber); }
+.panel-link:focus-visible { outline: 2px solid var(--amber); outline-offset: 3px; }
+.similar-toggle { display: none; }
+.write-panel.expanded .similar-toggle { display: inline-block; }
+.similar-notes {
+  min-height: 0;
+  overflow: hidden;
+  border-left: 1px solid var(--rule);
+  padding-left: 16px;
+  font-family: var(--mono);
+  color: var(--ink-3);
+}
+.similar-notes[hidden] { display: none; }
+.similar-notes-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 10px;
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  text-transform: lowercase;
+  color: var(--ink);
+}
+.similar-notes-list {
+  display: grid;
+  gap: 8px;
+  max-height: 100%;
+  overflow: auto;
+}
+.similar-notes-empty {
+  margin: 0;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-4);
+}
+.similar-note-card {
+  appearance: none;
+  width: 100%;
+  text-align: left;
+  background: color-mix(in srgb, var(--bg) 72%, transparent);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 10px;
+  cursor: pointer;
+  color: var(--ink);
+}
+.similar-note-card:hover { border-color: var(--amber); }
+.similar-note-text,
+.similar-note-reason,
+.similar-note-tags { display: block; }
+.similar-note-text { font: 12px/1.35 var(--sans); color: var(--ink); }
+.similar-note-reason { margin-top: 6px; font-size: 10px; color: var(--ink-4); }
+.similar-note-tags { margin-top: 7px; }
+.similar-note-tags span { margin-right: 6px; font-size: 10px; color: var(--amber); }
+.write-panel.expanded .panel-foot {
+  max-width: 72ch;
+  width: 100%;
+  margin: 18px auto 0;
+}
+
+/* Save button — primary action in the write panel. Amber fill = the same
+ * "engaged" signal used by .iconbtn.active, so the visual vocabulary is
+ * consistent. Sized for comfortable touch on mobile (≥44px target) while
+ * still reading as a chrome control on desktop. */
+.panel-save {
+  appearance: none;
+  flex: none;
+  margin-left: auto;
+  background: var(--amber);
+  border: 1px solid var(--amber);
+  color: var(--bg);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: lowercase;
+  font-weight: 600;
+  padding: 8px 18px;
+  min-height: 32px;
+  border-radius: 2px;
+  cursor: pointer;
+  transition: background .12s, border-color .12s, transform .08s, box-shadow .12s;
+}
+.panel-save:hover { background: var(--rust); border-color: var(--rust); box-shadow: var(--shadow-warm); }
+.panel-save:active { transform: translateY(1px); }
+.panel-save:focus-visible { outline: 2px solid var(--amber); outline-offset: 2px; }
+.panel-save:disabled { opacity: .5; cursor: not-allowed; }
+
+/* Filter panel — opens below the row when filter button is clicked.
+ * Same amber-top-rule pattern as the write panel. */
+.filter-panel {
+  margin-top: 12px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-top: 1px solid var(--amber);
+  border-radius: 2px;
+  padding: 10px 12px;
+  box-shadow: var(--shadow-warm);
+}
+.filter-panel .pills {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.filter-panel .pills::-webkit-scrollbar { display: none }
+/* Pills — sharp 2px corners (was 999px pill-shape). Tag colors flow through
+ * via the --c custom prop set inline per-pill. Clear pill unified on amber. */
+.pill {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  padding: 4px 9px;
+  border: 1px solid var(--c, var(--rule-2));
+  background: transparent;
+  color: var(--c, var(--ink-3));
+  cursor: pointer;
+  transition: all 0.12s;
+  border-radius: 2px;
+  font-weight: 500;
+  white-space: nowrap;
+}
+.pill:hover { background: var(--c, var(--paper-2)); color: var(--c, var(--ink)); }
+.pill.active { background: var(--c, var(--ink)); border-color: var(--c, var(--ink)); color: var(--bg); font-weight: 600; }
+.pill .n { margin-left: 5px; opacity: 0.65; font-size: 9px; font-variant-numeric: tabular-nums; }
+.pill.all { border-style: dashed; color: var(--ink-3); border-color: var(--rule-2); }
+.pill.all.active { background: var(--ink); color: var(--bg); border-color: var(--ink); }
+.pill.all:hover { color: var(--ink); background: var(--paper-2); }
+.pill.all.active:hover { color: var(--bg); background: var(--ink); }
+.pill.clear { background: transparent; color: var(--amber); border-color: var(--amber); margin-left: 4px }
+.pill.clear:hover { background: var(--amber); color: var(--bg); }
+
+/* --- Notes masonry --- */
+
+.notes {
+  position: relative;     /* pretext masonry positions notes absolutely */
+  width: 100%;
+}
+
+/* Notes — pastel tag backgrounds preserved (lib/colors.ts:TAG_BG calibrated
+ * for cream paper). Rectangular, no border-radius — they're sticky-notes.
+ * Hover lift uses the warm shadow so it doesn't read as a cool grey halo. */
+.note {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 20px 16px;
+  overflow: hidden;
+  background: var(--note-bg, var(--paper-2));
+  cursor: pointer;
+  border: 1px solid var(--rule);             /* faint rust hairline, always-on — distinguishes notes from page when they have no pastel bg */
+  transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  /* width and height are set inline by the masonry layout */
+}
+.note:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px -8px rgba(140, 71, 22, 0.20);
+  border-color: rgba(140, 71, 22, 0.08);
+}
+.note .text {
+  flex: 1 1 auto;
+  min-height: 0;
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink);
+  margin: 0;
+  overflow: hidden;
+  /* preserve user newlines */
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.note[data-clipped='true'] .text {
+  position: relative;
+}
+.note[data-clipped='true'] .text::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 84px;
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0), var(--note-bg, var(--paper-2)) 82%);
+  pointer-events: none;
+}
+.note .caption {
+  margin-top: 12px;                /* was 14; trimmed 2px so NOTE_CAPTION_HEIGHT=32 fits exactly */
+  font-family: var(--mono);
+  font-size: 11px;
+  line-height: 16px;               /* pinned; previously inherited 1.55 → ~17px line box → digit descenders got clipped at the bottom of the card */
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ink-3);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.note .caption .dot { color: var(--ink-4); }
+.note .caption .tag-mini { color: var(--c-fg, var(--ink-3)); font-weight: 500; }
+.note .caption .tag-mini.matched {
+  color: var(--ink);
+  text-decoration: underline;
+  text-decoration-color: var(--c-fg, var(--swiss-red));
+  text-decoration-thickness: 2px;
+  text-underline-offset: 3px;
+}
+
+/* --- Ghost pills (Phase-C suggestion review) ----------------------------
+ * Inline chip-style pills appended to the caption row when a note has a
+ * pending classifier suggestion of medium or low confidence. Visually
+ * distinct from .tag-mini (text-style) so users can tell at a glance which
+ * tags are accepted vs proposed.
+ *   medium  → dashed border, opacity 0.55  — "plausible but not sure"
+ *   low     → dotted border, opacity 0.40  — "a guess, look twice"
+ * Click the label → accept that tag. Click × → reject that tag.
+ * Group container carries the rationale as a title= tooltip. */
+.note .caption .ghost-group {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.note .caption .ghost-sep { opacity: 0.6; }
+
+.note .caption .tag-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 1px 4px 1px 6px;
+  border: 1px solid var(--c-fg, var(--rule-2));
+  border-radius: 2px;
+  color: var(--c-fg, var(--ink-3));
+  font-family: var(--mono);
+  font-size: 10px;
+  text-transform: lowercase;
+  letter-spacing: 0.02em;
+  line-height: 14px;
+  background: transparent;
+  transition: opacity 0.18s ease, border-style 0.18s ease, background 0.12s ease, transform 0.18s ease;
+}
+.note .caption .tag-ghost.conf-medium { border-style: dashed; opacity: 0.55; }
+.note .caption .tag-ghost.conf-low    { border-style: dotted; opacity: 0.40; }
+
+.note .caption .tag-ghost:hover {
+  opacity: 1;
+  border-style: solid;
+}
+
+/* Click-feedback: pill solidifies + bumps to fade out before the board
+ * re-renders the whole note. The board calls evictNode() ~immediately so
+ * this animation overlaps the DOM swap; visually it reads as one motion. */
+.note .caption .tag-ghost.solidifying {
+  opacity: 1;
+  border-style: solid;
+  background: var(--c-fg, var(--ink));
+  color: var(--bg);
+}
+.note .caption .tag-ghost.rejecting {
+  opacity: 0;
+  transform: scale(0.85);
+}
+
+.note .caption .tag-ghost-label {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  padding: 0;
+  cursor: pointer;
+}
+.note .caption .tag-ghost-reject {
+  border: none;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-size: 11px;            /* slightly bigger than label so × is easy to tap */
+  line-height: 1;
+  padding: 0 2px;
+  margin-left: 1px;
+  opacity: 0.55;
+  cursor: pointer;
+  border-left: 1px solid currentColor;
+}
+.note .caption .tag-ghost-reject:hover { opacity: 1; }
+.note .caption .tag-ghost-label:focus-visible,
+.note .caption .tag-ghost-reject:focus-visible {
+  outline: 1px solid var(--amber);
+  outline-offset: 1px;
+}
+
+/* --- Pending-suggestions toggle (in filter panel) -----------------------
+ * Single-line label + checkbox + count. Sits above the pills row inside the
+ * filter panel, divided from it by a faint rust hairline. */
+.filter-panel .suggestions-toggle {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 8px;
+  padding: 0 0 8px;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-3);
+  cursor: pointer;
+  user-select: none;
+}
+.filter-panel .suggestions-toggle input[type=checkbox] {
+  appearance: none;
+  -webkit-appearance: none;
+  width: 12px; height: 12px;
+  border: 1px solid var(--rule-2);
+  border-radius: 1px;
+  background: var(--paper);
+  cursor: pointer;
+  transition: border-color .12s, background .12s;
+  display: inline-grid; place-content: center;
+  margin: 0;
+}
+.filter-panel .suggestions-toggle input[type=checkbox]:checked {
+  background: var(--amber);
+  border-color: var(--amber);
+}
+.filter-panel .suggestions-toggle input[type=checkbox]:checked::after {
+  content: '';
+  width: 6px; height: 6px;
+  background: var(--bg);
+  clip-path: polygon(14% 50%, 0 64%, 36% 100%, 100% 22%, 86% 8%, 36% 72%);
+}
+.filter-panel .suggestions-toggle-count {
+  color: var(--ink-4);
+  font-variant-numeric: tabular-nums;
+}
+.filter-panel .suggestions-toggle-count:empty { display: none; }
+
+/* --- Empty state --- */
+
+.empty {
+  padding: 80px 0;
+  text-align: center;
+  color: var(--ink-4);
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+}
+
+/* --- Footer --- */
+
+.board-footer {
+  margin-top: 96px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule-2);
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  color: var(--ink-4);
+}
+
+/* === Note editor (click-to-edit overlay) ===================================
+ * Full-viewport dim + centered panel. Visual vocabulary mirrors .write-panel
+ * (cream paper surface, amber top hairline, mono hint footer) but scaled up
+ * for primary-task editing. The textarea grows up to 70vh; beyond that it
+ * scrolls internally so the panel stays bounded.
+ */
+
+.note-editor-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: rgba(36, 26, 18, 0.32);   /* warm walnut dim, not black */
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 10vh 16px 16px;
+  overflow-y: auto;
+  /* Subtle fade-in on open. backdrop is the animated element; the panel
+   * sits on top and inherits the same paint. */
+  animation: note-editor-fade 0.14s ease-out;
+}
+/* The .note-editor-backdrop class rule sets display:flex, which beats the
+ * UA stylesheet's [hidden]{display:none} on specificity. Without this
+ * explicit override the backdrop is visible on page boot even though
+ * note-editor.ts sets backdrop.hidden=true. */
+.note-editor-backdrop[hidden] {
+  display: none;
+}
+
+@keyframes note-editor-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.note-editor {
+  width: min(720px, 100%);
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-top: 1px solid var(--amber);    /* the engaged-surface signal */
+  border-radius: 2px;
+  box-shadow: 0 12px 36px -12px rgba(36, 26, 18, 0.35);
+  padding: 18px 22px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.note-editor-text {
+  width: 100%;
+  border: none;
+  background: transparent;
+  outline: none;
+  resize: none;
+  font-family: var(--sans);
+  font-size: 17px;
+  font-weight: 400;
+  line-height: 1.5;
+  color: var(--ink);
+  padding: 0;
+  min-height: 1.5em;
+  /* Internal scroll once the JS-set inline height hits its 70vh cap. */
+  overflow-y: auto;
+}
+
+.note-editor-foot {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  color: var(--ink-4);
+}
+.note-editor-meta {
+  font-variant-numeric: tabular-nums;
+  color: var(--ink-3);
+}
+.note-editor-delete {
+  /* Quiet destructive affordance: lives at the start of the footer, monospaced
+   * to match the hint typography. Two-click confirm (no native dialog) — the
+   * .primed state turns the button rust-colored and swaps the label. */
+  appearance: none;
+  background: transparent;
+  border: 1px solid var(--rule-2);
+  color: var(--ink-3);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: lowercase;
+  padding: 3px 8px;
+  border-radius: 1px;
+  cursor: pointer;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.note-editor-delete:hover {
+  color: var(--rust);
+  border-color: var(--rust);
+}
+.note-editor-delete.primed {
+  color: var(--paper);
+  background: var(--rust);
+  border-color: var(--rust);
+}
+.note-editor-delete:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+.note-editor-hint {
+  margin-left: auto;
+}
+.note-editor-hint kbd {
+  font-family: var(--mono);
+  padding: 1px 4px;
+  border: 1px solid var(--rule-2);
+  border-bottom-width: 2px;
+  border-radius: 1px;
+  font-size: 9px;
+  color: var(--ink-2);
+  background: var(--bg);
+  margin: 0 1px;
+}
+.note-editor-status {
+  opacity: 0;
+  transition: opacity .18s;
+  font-weight: 600;
+  color: var(--amber);
+}
+.note-editor-status[data-tone=err] { color: var(--rust); }
+.note-editor-status.show { opacity: 1; }
+
+/* === List view (D-031) =====================================================
+ * Alternate render mode: chronological single-column flow.
+ * Toggled at runtime by board.setView('list' | 'masonry') via the third icon
+ * in the header (see header.ts data-view). Persisted in localStorage.boardView.
+ *
+ * Visual change is CSS-only — reuses createStickyNote() unchanged. The masonry
+ * path sets each .note's inline transform/width/height; in list mode we
+ * override those with !important (the ONLY place !important appears in the
+ * stylesheet, which is justified because we're explicitly fighting JS-set
+ * inline styles from a sibling code path).
+ */
+
+.notes--list {
+  max-width: 720px;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.notes--list .note {
+  position: static;
+  transform: none !important;        /* override masonry's translate() */
+  width: auto !important;
+  height: auto !important;
+}
+
+/* Tighter caption in list mode — the date stamp sits closer to the body since
+ * there's no need to reserve breathing room between stacked masonry tiles. */
+.notes--list .note .caption {
+  margin-top: 10px;
+}
+
+/* === Whiteboard view (2026-06-06) ============================================
+ * Third view mode. Freeform pan/zoom canvas where every note has a
+ * board-space (positionX, positionY). The .notes--whiteboard container is
+ * positioned and sized by the surrounding layout; its child
+ * .whiteboard is the actual interactive surface. See PLAN-whiteboard.md.
+ */
+.notes--whiteboard {
+  /* Override masonry's positioning. The whiteboard fills the remaining
+   * viewport space and clips its overflowing canvas. */
+  height: calc(100vh - 80px);
+  min-height: 480px;
+  padding: 0;
+  position: relative;
+  overflow: hidden;
+}
+
+.whiteboard {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 1px 1px, var(--rule) 1px, transparent 0) 0 0 / 32px 32px,
+    var(--bg);
+  cursor: default;
+  touch-action: none;       /* let our pointer handlers own pinch/drag */
+  user-select: none;
+}
+.whiteboard.panning { cursor: grabbing; }
+.whiteboard.space-held { cursor: grab; }
+.whiteboard.hand-tool { cursor: grab; }
+.whiteboard.hand-tool.panning { cursor: grabbing; }
+
+.whiteboard-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 1px;
+  height: 1px;
+  transform-origin: 0 0;
+  will-change: transform;
+}
+
+/* Notes in whiteboard mode are positioned absolutely with an inline
+ * `transform: translate(x, y)` written by createWhiteboard(). Inline styles
+ * win over any external rule, so masonry's `.note:hover { transform: ... }`
+ * does not actually displace whiteboard notes — we just relax the transition
+ * list to drop the `transform` axis so drag updates stay pixel-exact. */
+.whiteboard-canvas .note {
+  position: absolute;
+  transition: box-shadow 0.12s ease, border-color 0.12s ease;
+  /* Fixed footprint in whiteboard mode. Notes are conceptually variable-height
+   * (height: auto) in masonry/list, but on the infinite canvas we lay them out
+   * on a fixed 280×220 grid via seedGridLayout. Letting the DOM grow past that
+   * cell makes tall notes spill into the row below them — the "hella overlap"
+   * the user saw. Clamping here keeps layout predictable, the overlap gone,
+   * and the browser's per-note layout work O(1).
+   *
+   * Width is asserted (not just inline) so survivor nodes returning from a
+   * mode switch don't carry stale auto-width. */
+  width: 280px;
+  height: 220px;
+  overflow: hidden;
+  /* Soft fade at the bottom so it's visually obvious the card is truncated
+   * rather than mysteriously cut off. Mask is GPU-cheap. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 24px), transparent 100%);
+          mask-image: linear-gradient(to bottom, #000 0, #000 calc(100% - 24px), transparent 100%);
+  /* Each note is its own layout/style/paint container — selection class
+   * toggles on one note do not invalidate sibling style recalc. */
+  contain: layout style paint;
+  /* Browser-level offscreen skipping. With a known intrinsic size the browser
+   * can skip rendering offscreen notes entirely — meaningful when a zoom-out
+   * keeps hundreds of nodes mounted. The intrinsic size matches the clamp so
+   * scroll/pan stays jank-free. */
+  content-visibility: auto;
+  contain-intrinsic-size: 280px 220px;
+  /* Q-P2: `will-change: transform` and `backface-visibility: hidden` MOVED
+   * to `.note.dragging` (below). Promoting every mounted note to its own
+   * compositor layer was creating 100–300 GPU layers above ~200 notes (the
+   * Chromium soft cap), where layers get demoted/re-uploaded with visible
+   * flicker. The pan transform lives on `.whiteboard-canvas` (one CSS
+   * transform, one layer for the whole canvas) — individual notes only need
+   * their own layer while actually being dragged. */
+}
+.whiteboard-canvas .note:hover {
+  box-shadow: 0 6px 16px -8px rgba(140, 71, 22, 0.20);
+  border-color: rgba(140, 71, 22, 0.08);
+}
+.whiteboard-canvas .note.selected {
+  outline: 2px solid var(--swiss-red, #C8503A);
+  outline-offset: 2px;
+}
+.whiteboard-canvas .note.dragging {
+  z-index: 1000;
+  box-shadow: 0 12px 28px -10px rgba(140, 71, 22, 0.35);
+  /* Q-P2: only the actively-dragged note gets a compositor layer. */
+  will-change: transform;
+  backface-visibility: hidden;
+}
+
+/* Q-P3: LOD canvas overlay (flag.lod). Positioned absolute over the
+ * zoomable canvas; pointer-events:none so hit-testing flows through the
+ * parent's pointerdown handler. */
+.whiteboard .whiteboard-lod {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.whiteboard-minimap {
+  position: absolute;
+  right: 12px;
+  top: 12px;
+  border: 1px solid var(--rule-2);
+  border-radius: 2px;
+  background: var(--paper);
+  pointer-events: none;       /* read-only minimap; revisit if we add click-to-pan */
+  box-shadow: 0 4px 12px -6px rgba(0,0,0,0.25);
+}
+
+.whiteboard-hud {
+  position: absolute;
+  left: 12px;
+  top: 12px;
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 4px 8px;
+  border-radius: 2px;
+}
+.whiteboard-hud-btn {
+  background: transparent;
+  border: 1px solid var(--rule);
+  color: var(--ink-2);
+  font: inherit;
+  padding: 2px 8px;
+  cursor: pointer;
+  border-radius: 2px;
+}
+.whiteboard-hud-btn:hover { background: var(--paper-2); color: var(--ink); }
+.whiteboard-hud-zoom { color: var(--ink-3); min-width: 36px; text-align: right; }
+
+/* AI prompt bar (flagged feature). Sits under the HUD.
+ *
+ * Two-tier layout: an event stack lives ABOVE the input row. The stack is
+ * positioned with the bar so toasts visually "emit" from the input as the
+ * server streams progress. The input row keeps the v1 single-line shape. */
+.whiteboard-ai-bar {
+  position: absolute;
+  left: 12px;
+  top: 48px;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 12px;
+  background: transparent;  /* wrapper is invisible; the row carries the paper */
+  width: clamp(280px, 38vw, 560px);
+  pointer-events: none;     /* re-enabled per child so the gap doesn't catch clicks */
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.whiteboard-ai-bar-row {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  padding: 4px 8px;
+  border-radius: 2px;
+  pointer-events: auto;
+}
+.whiteboard-ai-bar-events {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  pointer-events: none;
+  /* Anchor at the bottom so new toasts appear closest to the input and
+   * push older ones upward as the stack grows. */
+  justify-content: flex-end;
+  min-height: 0;
+}
+.whiteboard-ai-bar-event {
+  font-size: 11px;
+  letter-spacing: 0.02em;
+  background: color-mix(in srgb, var(--paper) 92%, transparent);
+  color: var(--ink-2, var(--ink));
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  padding: 3px 8px;
+  white-space: nowrap;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  /* Enter state defaults: invisible + slid down. The .enter class flips us
+   * to the visible state, and .leave slides upward and fades. */
+  opacity: 0;
+  transform: translateY(8px);
+  transition: opacity 180ms ease, transform 220ms cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+.whiteboard-ai-bar-event.enter {
+  opacity: 1;
+  transform: translateY(0);
+}
+.whiteboard-ai-bar-event.leave {
+  opacity: 0;
+  transform: translateY(-6px);
+}
+.whiteboard-ai-bar-event--tool {
+  color: var(--accent, var(--ink));
+  border-color: color-mix(in srgb, var(--accent, var(--ink)) 50%, var(--rule));
+}
+.whiteboard-ai-bar-event--result {
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--ink) 25%, var(--rule));
+}
+.whiteboard-ai-bar-event--error {
+  color: var(--swiss-red, #C8503A);
+  border-color: var(--swiss-red, #C8503A);
+}
+.whiteboard-ai-bar input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  color: var(--ink);
+  font: inherit;
+  /* Belt-and-suspenders for iOS: ensure the input itself is fully
+   * interactive even if a future ancestor reintroduces touch-action:none. */
+  touch-action: auto;
+  user-select: text;
+  -webkit-user-select: text;
+}
+.whiteboard-ai-bar input::placeholder { color: var(--ink-4); }
+.whiteboard-ai-bar-status {
+  color: var(--ink-3);
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.10em;
+  min-width: 60px;
+  text-align: right;
+}
+.whiteboard-ai-bar-status.error { color: var(--swiss-red, #C8503A); }
+
+/* === Mobile (≤640px) ======================================================
+ * Single breakpoint, no tablet tier. Goals:
+ *   1. Shrink the board gutter so chrome and notes don't get crushed.
+ *   2. Keep the header row legible — search still flexes, icon buttons stay
+ *      ≥44px on the long axis for thumb targets.
+ *   3. Write panel: the save button stretches full-width below the status
+ *      row so the primary action is always within reach of the right thumb.
+ *   4. List view container drops its centered 720px cap so it uses the
+ *      full screen width.
+ */
+
+/* --- Tag chip strip (shared by write panel + note editor) -------------------
+ *
+ * One-line horizontal row of pill-shaped tag chips. The chip strip is a VIEW
+ * over the textarea: clicking × strips the first '#tag' from the text;
+ * clicking '+ tag' opens an inline input with autocomplete from the existing
+ * tag universe. See implementation-notes/2026-05-29-tag-chips.html.
+ *
+ * Color: each chip carries an inline `style="--c:<tagColor>"` set by the JS
+ * factory. Visual vocabulary mirrors the filter .pill (sharp 2px corners,
+ * mono caption font) so the row reads as a member of the existing family.
+ */
+.tag-chips {
+  margin: 0;
+}
+.tag-chips-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  min-height: 22px;
+}
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  font-weight: 500;
+  padding: 3px 4px 3px 8px;
+  border: 1px solid var(--c, var(--rule-2));
+  border-radius: 2px;
+  background: transparent;
+  color: var(--c, var(--ink-3));
+  transition: background .12s, color .12s, border-color .12s;
+  white-space: nowrap;
+}
+.tag-chip:hover {
+  background: var(--c, var(--paper-2));
+  color: var(--bg);
+}
+.tag-chip-label { line-height: 1.1; }
+.tag-chip-remove {
+  appearance: none;
+  border: none;
+  background: transparent;
+  color: currentColor;
+  font-family: var(--mono);
+  font-size: 13px;
+  line-height: 1;
+  padding: 0 4px;
+  margin: 0;
+  cursor: pointer;
+  border-radius: 2px;
+  opacity: 0.6;
+  transition: opacity .12s, background .12s;
+}
+.tag-chip-remove:hover { opacity: 1; background: rgba(0,0,0,0.08); }
+.tag-chip-remove:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+  opacity: 1;
+}
+.tag-chip-add {
+  appearance: none;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border: 1px dashed var(--rule-2);
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  border-radius: 2px;
+  transition: color .12s, border-color .12s, background .12s;
+}
+.tag-chip-add:hover {
+  color: var(--amber);
+  border-color: var(--amber);
+  background: var(--paper-2);
+}
+.tag-chip-add:focus-visible {
+  outline: 2px solid var(--amber);
+  outline-offset: 1px;
+}
+
+/* Add-input + autocomplete menu */
+.tag-chip-input-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+.tag-chip-input {
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  padding: 3px 8px;
+  border: 1px solid var(--amber);
+  border-radius: 2px;
+  background: var(--bg);
+  color: var(--ink);
+  outline: none;
+  width: 11ch;
+  min-width: 90px;
+}
+.tag-chip-input::placeholder { color: var(--ink-4); }
+.tag-chip-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  min-width: 140px;
+  max-width: 220px;
+  padding: 4px;
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  box-shadow: var(--shadow-warm);
+  max-height: 240px;
+  overflow-y: auto;
+}
+.tag-chip-menu[hidden] { display: none; }
+.tag-chip-menu-item {
+  appearance: none;
+  text-align: left;
+  font-family: var(--mono);
+  font-size: 11px;
+  text-transform: lowercase;
+  letter-spacing: 0.03em;
+  padding: 4px 8px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--c, var(--ink-2));
+  cursor: pointer;
+  border-radius: 2px;
+}
+.tag-chip-menu-item:hover,
+.tag-chip-menu-item.selected {
+  background: var(--c, var(--paper-2));
+  color: var(--bg);
+  border-color: var(--c, var(--rule-2));
+}
+
+/* Hosting containers: a touch of spacing so the row reads as belonging to
+ * its parent (write panel / note editor footer area) without crowding. */
+.write-panel-tagrow {
+  margin-top: 8px;
+}
+.write-panel.expanded .write-panel-tagrow {
+  max-width: 72ch;
+  width: 100%;
+  margin: 14px auto 0;
+}
+.note-editor-tagrow {
+  /* The .note-editor uses gap:10px, so no extra margin needed. */
+}
+
+@media (max-width: 640px) {
+  .board { padding: 16px 14px 64px; }
+
+  .header { margin: 0 0 18px; }
+  .header-row { gap: 6px; height: 42px; }
+  .searchbox { padding: 0 14px; gap: 8px; }
+  .searchbox input { font-size: 16px; /* ≥ 16px = no iOS zoom on focus */ }
+  .iconbtn { width: 40px; }
+  .agent-mode-btn { width: 44px; min-width: 44px; padding: 0 4px; }
+
+  .write-panel { padding: 12px 12px 12px; }
+  .write-panel.expanded { inset: 0; border-radius: 0; padding: 18px 16px; }
+  .write-panel.expanded.similar-open .write-panel-body { grid-template-columns: 1fr; }
+  .similar-notes { border-left: 0; border-top: 1px solid var(--rule); padding: 12px 0 0; max-height: 34vh; }
+  .write-panel textarea { font-size: 16px; /* ≥ 16px = no iOS zoom on focus */ }
+  .write-panel.expanded textarea { font-size: 18px; }
+  .write-panel .panel-foot {
+    flex-wrap: wrap;
+    gap: 8px 10px;
+  }
+  .write-panel .panel-status {
+    flex: 1 1 auto;
+    text-align: left;
+    order: 1;
+  }
+  .write-panel .panel-hint { order: 0; }
+  .write-panel .panel-stats { order: 0; }
+  .panel-link { order: 2; }
+  .panel-save {
+    order: 2;
+    flex: 1 1 100%;
+    margin-left: 0;
+    min-height: 44px;          /* full touch target */
+    padding: 12px 18px;
+    font-size: 12px;
+  }
+
+  .notes--list { max-width: none; }
+}
+
+
+/* === Whiteboard fullscreen shell ===
+ * When the whiteboard view is active, body.view-whiteboard repurposes the
+ * shell to fill the viewport (Figma-style). Masonry / list layouts are
+ * unaffected because they never carry this body class. See
+ * implementation-notes/2026-06-08-whiteboard-fullscreen.html. */
+body.view-whiteboard {
+  overflow: hidden;
+  height: 100vh;
+}
+
+body.view-whiteboard .board {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+body.view-whiteboard .header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 10;
+  margin: 0;
+  padding: 0;
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid var(--rule);
+}
+
+body.view-whiteboard .notes--whiteboard {
+  position: absolute;
+  inset: 0;
+  height: 100vh;
+  min-height: 0;
+  flex: 1;
+}
+
+body.view-whiteboard .board-footer {
+  display: none;
+}
+
+body.view-whiteboard .whiteboard-hud {
+  top: 60px;
+}
+
+body.view-whiteboard .whiteboard-ai-bar {
+  top: auto;
+  bottom: 16px;
+  left: 50%;
+  right: auto;
+  transform: translateX(-50%);
+}
+
+@media (max-width: 640px) {
+  body.view-whiteboard .board { padding: 0; }
+  body.view-whiteboard .header { padding: 0; }
+}
+
+.agent-view {
+  --agent-card: var(--paper);
+  --agent-soft: var(--paper-2);
+  --agent-line: var(--rule);
+  margin-top: 12px;
+}
+
+.agent-shell {
+  width: min(100%, 880px);
+  margin: 28px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "runtime"
+    "chat";
+  align-items: start;
+  align-content: start;
+  gap: 14px;
+}
+
+.agent-runtime-strip {
+  grid-area: runtime;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  color: var(--ink-3);
+  font: 13px/1.35 var(--sans);
+}
+
+.agent-runtime-strip > p {
+  min-width: 0;
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-runtime-strip > p::before {
+  content: '';
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  margin-right: 8px;
+  border-radius: 999px;
+  background: #22c55e;
+  box-shadow: 0 0 0 4px color-mix(in srgb, #22c55e 14%, transparent);
+}
+
+.agent-setup-open {
+  appearance: none;
+  border: 1px solid var(--agent-line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink-3);
+  cursor: pointer;
+  padding: 6px 12px;
+  font: 11px/1 var(--mono);
+  letter-spacing: .04em;
+  text-transform: lowercase;
+}
+
+.agent-setup-modal {
+  width: min(560px, calc(100vw - 28px));
+  border: 0;
+  padding: 0;
+  background: transparent;
+}
+
+.agent-setup-modal::backdrop {
+  background: color-mix(in srgb, #1b120c 38%, transparent);
+  backdrop-filter: blur(2px);
+}
+
+.agent-setup-card {
+  position: relative;
+  padding: 22px;
+  border: 1px solid var(--agent-line);
+  border-top: 3px solid var(--amber);
+  border-radius: 18px;
+  background: var(--paper);
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-setup-close {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  cursor: pointer;
+  font: 22px/1 var(--sans);
+}
+
+.agent-setup-card h2 {
+  margin: 2px 0 8px;
+  color: var(--ink);
+}
+
+.agent-setup-copy {
+  margin: 0 0 10px;
+  color: var(--ink-2);
+}
+
+.agent-setup-actions,
+.agent-runtime-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.agent-runtime-meta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin: 10px 0 0;
+}
+
+.agent-runtime-term,
+.agent-runtime-value {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  font: 11px/1.2 var(--mono);
+}
+
+.agent-runtime-term {
+  padding: 5px 0 5px 8px;
+  border: 1px solid var(--agent-line);
+  border-right: 0;
+  border-radius: 2px 0 0 2px;
+  color: var(--ink-3);
+  background: var(--agent-soft);
+  letter-spacing: .02em;
+  text-transform: lowercase;
+}
+
+.agent-runtime-value {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  padding: 5px 8px 5px 4px;
+  border: 1px solid var(--agent-line);
+  border-left: 0;
+  border-radius: 0 2px 2px 0;
+  color: var(--ink-2);
+  background: var(--agent-soft);
+}
+
+.agent-codex-device {
+  display: grid;
+  justify-items: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.agent-codex-code {
+  display: grid;
+  justify-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 12px;
+  box-sizing: border-box;
+  border: 1px solid var(--agent-line);
+  border-radius: 10px;
+  background: var(--agent-soft);
+}
+
+.agent-codex-code span {
+  color: var(--ink-3);
+  font: 11px/1 var(--mono);
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.agent-codex-code strong {
+  color: var(--ink);
+  font: 28px/1 var(--mono);
+  letter-spacing: .16em;
+}
+
+.agent-codex-code a {
+  color: var(--ink-2);
+  font: 12px/1.2 var(--mono);
+}
+
+.agent-codex-code[hidden] {
+  display: none;
+}
+
+.agent-codex-status {
+  margin: 6px 0 0;
+  color: var(--ink-3);
+  font: 12px/1.3 var(--mono);
+}
+
+.agent-chat {
+  grid-area: chat;
+  display: flex;
+  min-width: 0;
+  min-height: min(580px, calc(100vh - 260px));
+  min-height: min(580px, calc(100dvh - 260px));
+  flex-direction: column;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.agent-chat-log {
+  flex: 1;
+  min-height: 280px;
+  padding: clamp(18px, 3vw, 28px);
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.agent-chat-log:empty::before {
+  content: 'What can I help with?';
+  margin: auto;
+  max-width: 520px;
+  color: var(--ink);
+  font: 650 clamp(30px, 4vw, 44px)/1.04 var(--sans);
+  letter-spacing: -.055em;
+  text-align: center;
+}
+
+.agent-msg {
+  width: fit-content;
+  max-width: min(760px, 88%);
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+
+.agent-msg--user {
+  align-self: flex-end;
+}
+
+.agent-msg--assistant {
+  align-self: flex-start;
+}
+
+.agent-msg-role,
+.agent-status,
+.agent-send,
+.agent-save,
+.agent-source-kicker,
+.agent-msg-save,
+.agent-cite,
+.agent-suggestion-chip {
+  font-family: var(--mono);
+}
+
+.agent-msg-role {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.agent-msg-body {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--ink);
+  font: 15px/1.6 var(--sans);
+}
+
+.agent-msg--user .agent-msg-body {
+  padding: 10px 12px;
+  border: 1px solid var(--amber);
+  border-radius: 2px;
+  background: var(--amber);
+  color: var(--bg);
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-msg--assistant .agent-msg-body {
+  padding: 12px 14px;
+  border: 1px solid var(--agent-line);
+  border-radius: 2px;
+  background: var(--paper);
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-cite {
+  display: inline-flex;
+  align-items: center;
+  margin: 0 1px;
+  border: 0;
+  background: transparent;
+  color: var(--teal);
+  padding: 0 2px;
+  font-size: .82em;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.agent-msg-sources {
+  display: grid;
+  gap: 8px;
+  width: min(680px, 100%);
+  margin-top: 8px;
+}
+
+.agent-msg-source-card {
+  display: grid;
+  gap: 5px;
+  width: 100%;
+  border: 1px solid var(--agent-line);
+  border-radius: 2px;
+  background: var(--paper-2);
+  padding: 9px 10px;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 120ms ease, background 120ms ease, transform 120ms ease-out;
+}
+
+.agent-msg-source-card:hover,
+.agent-msg-source-card:focus-visible {
+  border-color: var(--rust);
+  background: var(--amber-tint);
+}
+
+.agent-msg-source-card:active {
+  transform: scale(.99);
+}
+
+.agent-msg-actions {
+  margin-top: 7px;
+}
+
+.agent-msg-save {
+  border: 0;
+  background: transparent;
+  color: var(--ink-3);
+  padding: 0;
+  font-size: 11px;
+  letter-spacing: .03em;
+  text-transform: lowercase;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.agent-msg-save:hover,
+.agent-msg-save:focus-visible {
+  color: var(--teal);
+}
+
+.agent-msg-save:disabled {
+  cursor: default;
+  opacity: .65;
+}
+
+.agent-activity {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.agent-activity-chip {
+  display: inline-flex;
+  align-items: center;
+  max-width: min(420px, 100%);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border: 1px solid var(--agent-line);
+  border-radius: 2px;
+  padding: 4px 8px;
+  background: var(--agent-soft);
+  color: var(--ink-3);
+  font: 11px/1.2 var(--mono);
+}
+
+.agent-activity-chip--thinking,
+.agent-activity-chip--writing {
+  animation: agent-pulse 1.1s ease-in-out infinite;
+}
+
+.agent-activity-chip--thinking {
+  color: var(--ink-4);
+}
+
+.agent-activity-chip--writing {
+  color: var(--ink-2);
+}
+
+.agent-activity-chip--tool {
+  border-color: color-mix(in srgb, var(--amber) 55%, var(--agent-line));
+  color: var(--ink-2);
+}
+
+.agent-activity-chip--result {
+  color: #2a7a2a;
+}
+
+.agent-activity-chip--error {
+  color: var(--swiss-red, #C8503A);
+  border-color: var(--swiss-red, #C8503A);
+}
+
+@keyframes agent-pulse {
+  0%, 100% { opacity: .62; }
+  50% { opacity: 1; }
+}
+
+.agent-trace {
+  width: min(720px, 100%);
+  margin-top: 10px;
+  border: 1px solid var(--agent-line);
+  border-radius: 2px;
+  background: var(--bg);
+}
+
+.agent-trace summary {
+  cursor: pointer;
+  list-style: none;
+  padding: 9px 12px;
+  color: var(--ink-3);
+  font: 11px/1 var(--mono);
+  letter-spacing: .06em;
+  text-transform: lowercase;
+}
+
+.agent-trace summary::-webkit-details-marker {
+  display: none;
+}
+
+.agent-trace-list {
+  display: grid;
+  gap: 8px;
+  padding: 0 10px 10px;
+}
+
+.agent-trace-row {
+  border-left: 2px solid var(--agent-line);
+  padding-left: 9px;
+}
+
+.agent-trace-row--thinking { border-left-color: color-mix(in srgb, var(--ink-4) 58%, var(--agent-line)); }
+.agent-trace-row--tool { border-left-color: #7c3aed; }
+.agent-trace-row--result { border-left-color: #2a7a2a; }
+.agent-trace-row--error { border-left-color: var(--swiss-red, #C8503A); }
+
+.agent-trace-label {
+  color: var(--ink-3);
+  font: 11px/1.2 var(--mono);
+  letter-spacing: .04em;
+  text-transform: lowercase;
+}
+
+.agent-trace-body {
+  margin: 4px 0 0;
+  color: var(--ink-2);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px/1.45 var(--mono);
+}
+
+.agent-msg-body--markdown { white-space: normal; }
+.agent-msg-body--markdown > *:first-child { margin-top: 0; }
+.agent-msg-body--markdown > *:last-child { margin-bottom: 0; }
+.agent-msg-body--markdown p,
+.agent-msg-body--markdown ul,
+.agent-msg-body--markdown ol,
+.agent-msg-body--markdown blockquote,
+.agent-msg-body--markdown pre,
+.agent-msg-body--markdown .agent-md-table-wrap { margin: 0 0 12px; }
+.agent-msg-body--markdown h1,
+.agent-msg-body--markdown h2,
+.agent-msg-body--markdown h3 {
+  margin: 18px 0 10px;
+  color: var(--ink);
+  font-weight: 600;
+  line-height: 1.25;
+}
+.agent-msg-body--markdown h1 { font-size: 26px; }
+.agent-msg-body--markdown h2 { font-size: 22px; }
+.agent-msg-body--markdown h3 { font-size: 18px; }
+.agent-msg-body--markdown h4,
+.agent-msg-body--markdown h5,
+.agent-msg-body--markdown h6 {
+  margin: 14px 0 8px;
+  color: var(--ink);
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: .08em;
+}
+.agent-msg-body--markdown ul,
+.agent-msg-body--markdown ol { padding-left: 20px; }
+.agent-msg-body--markdown li + li { margin-top: 4px; }
+.agent-msg-body--markdown code {
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper-2);
+  padding: 1px 4px;
+  font: 12px/1.4 var(--mono);
+}
+.agent-msg-body--markdown .agent-md-code {
+  border: 1px solid var(--rule);
+  border-left: 2px solid var(--amber);
+  border-radius: 2px;
+  background: var(--paper-2);
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.agent-msg-body--markdown .agent-md-code code {
+  border: 0;
+  background: transparent;
+  padding: 0;
+}
+.agent-msg-body--markdown blockquote {
+  border-left: 2px solid var(--rust);
+  padding-left: 10px;
+  color: var(--ink-2);
+}
+.agent-msg-body--markdown .agent-md-rule {
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid var(--rule);
+}
+.agent-msg-body--markdown .agent-md-table-wrap { overflow-x: auto; }
+.agent-msg-body--markdown .agent-md-table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--paper-2) 68%, var(--bg));
+}
+.agent-msg-body--markdown .agent-md-table th,
+.agent-msg-body--markdown .agent-md-table td {
+  border: 1px solid var(--rule);
+  padding: 6px 8px;
+  text-align: left;
+  vertical-align: top;
+}
+.agent-msg-body--markdown .agent-md-table th {
+  background: color-mix(in srgb, var(--paper-2) 84%, var(--bg));
+  font-weight: 600;
+}
+.agent-msg-body--markdown a { color: var(--teal); }
+
+.agent-composer-wrap {
+  margin: 0 clamp(14px, 3vw, 20px);
+}
+
+.agent-composer {
+  margin: 0;
+  padding: 10px;
+  border: 1px solid var(--agent-line);
+  border-top: 2px solid var(--amber);
+  border-radius: 2px;
+  background: color-mix(in srgb, var(--paper-2) 44%, var(--bg));
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-composer:focus-within {
+  border-color: var(--rust);
+  border-top-color: var(--amber);
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-suggestions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 7px;
+  margin: 0 0 8px;
+  padding: 0 2px;
+}
+
+.agent-suggestions[hidden] {
+  display: none;
+}
+
+.agent-suggestion-chip {
+  appearance: none;
+  border: 1px solid var(--agent-line);
+  background: color-mix(in srgb, var(--paper) 72%, transparent);
+  color: var(--ink-2);
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.agent-suggestion-chip:hover,
+.agent-suggestion-chip:focus-visible {
+  border-color: var(--rust);
+  color: var(--rust);
+}
+
+.agent-suggestion-refresh {
+  font-family: var(--mono);
+  color: var(--ink-3);
+}
+
+.agent-suggestion-refresh:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
+.agent-composer textarea {
+  width: 100%;
+  min-height: 42px;
+  max-height: 160px;
+  resize: none;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  border-radius: 2px;
+  padding: 6px 8px;
+  overflow: auto;
+  font: 16px/1.4 var(--sans);
+}
+
+.agent-composer textarea::placeholder {
+  color: var(--ink-3);
+}
+
+.agent-composer-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.agent-composer-controls {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.agent-composer-select {
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink-2);
+  font: 11px/1 var(--mono);
+  padding: 4px 6px;
+  text-transform: lowercase;
+}
+
+.agent-status {
+  flex: 1;
+  min-width: 0;
+  min-height: 18px;
+  padding-left: 10px;
+  font-size: 11px;
+  color: var(--ink-3);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-send,
+.agent-save {
+  appearance: none;
+  border: 1px solid var(--amber);
+  background: var(--amber);
+  color: var(--bg);
+  border-radius: 2px;
+  padding: 8px 13px;
+  font-size: 11px;
+  letter-spacing: .08em;
+  text-transform: lowercase;
+  cursor: pointer;
+  transition: transform 80ms ease, opacity 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.agent-send:hover,
+.agent-save:hover {
+  background: var(--rust);
+  border-color: var(--rust);
+}
+
+.agent-send:active,
+.agent-save:active {
+  transform: translateY(1px);
+}
+
+.agent-save--ghost {
+  border-color: var(--agent-line);
+  background: transparent;
+  color: var(--ink-2);
+}
+
+.agent-send:disabled,
+.agent-save:disabled {
+  opacity: .45;
+  transform: none;
+  cursor: default;
+}
+
+.agent-source-kicker {
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: lowercase;
+  color: var(--ink-3);
+}
+
+.agent-source-body {
+  color: var(--ink);
+  font: 13px/1.45 var(--sans);
+  white-space: pre-wrap;
+}
+
+@media (max-width: 960px) {
+  .agent-shell {
+    width: 100%;
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "runtime"
+      "chat";
+  }
+
+  .agent-runtime-strip {
+    align-items: flex-start;
+    justify-content: flex-start;
+    flex-direction: column;
+  }
+
+  .agent-runtime-actions {
+    justify-content: flex-start;
+  }
+
+  .agent-chat {
+    min-height: calc(100vh - 250px);
+    min-height: calc(100dvh - 250px);
+    border-radius: 2px;
+  }
+
+  .agent-chat-log {
+    min-height: 240px;
+    padding: 18px;
+  }
+
+  .agent-msg {
+    max-width: 100%;
+  }
+
+  .agent-msg--assistant,
+  .agent-msg-sources {
+    width: 100%;
+  }
+
+  .agent-msg-source-card {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 640px) {
+  body.view-agent .board {
+    padding: 12px 10px max(14px, env(safe-area-inset-bottom));
+  }
+
+  body.view-agent .header {
+    margin-bottom: 10px;
+  }
+
+  .agent-view {
+    margin-top: 0;
+  }
+
+  .agent-shell {
+    margin-top: 8px;
+    gap: 8px;
+  }
+
+  .agent-runtime-strip {
+    gap: 6px;
+    font-size: 12px;
+  }
+
+  .agent-runtime-strip > p {
+    width: 100%;
+    white-space: normal;
+  }
+
+  .agent-runtime-panel[open] {
+    padding: 10px;
+  }
+
+  .agent-runtime-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .agent-runtime-actions .agent-save {
+    width: 100%;
+  }
+
+  .agent-chat {
+    min-height: calc(100vh - 154px);
+    min-height: calc(100dvh - 154px);
+  }
+
+  .agent-chat-log {
+    min-height: 220px;
+    gap: 12px;
+    padding: 10px 4px 12px;
+  }
+
+  .agent-chat-log:empty::before {
+    max-width: 300px;
+    font-size: clamp(26px, 11vw, 36px);
+  }
+
+  .agent-msg--assistant,
+  .agent-msg-sources,
+  .agent-trace {
+    width: 100%;
+  }
+
+  .agent-msg--assistant .agent-msg-body {
+    padding: 10px;
+  }
+
+  .agent-msg-source-card {
+    padding: 9px;
+  }
+
+  .agent-composer-wrap {
+    position: sticky;
+    z-index: 2;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    width: 100%;
+    margin: 0;
+  }
+
+  .agent-composer {
+    padding: 8px;
+    background: var(--paper);
+  }
+
+  .agent-suggestions {
+    width: 100%;
+    min-width: 0;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 2px;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .agent-suggestion-chip {
+    flex: 0 0 auto;
+    max-width: 84vw;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .agent-composer textarea {
+    min-height: 42px;
+    max-height: 120px;
+    padding: 5px 6px;
+    font-size: 16px;
+  }
+
+  .agent-composer-foot {
+    align-items: stretch;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .agent-composer-controls {
+    flex: 1 1 100%;
+  }
+
+  .agent-composer-select {
+    flex: 1;
+  }
+
+  .agent-composer-select {
+    width: 100%;
+  }
+
+  .agent-status {
+    flex: 1;
+    min-width: 0;
+    padding-left: 8px;
+    line-height: 1.25;
+    white-space: normal;
+  }
+
+  .agent-send,
+  .agent-save {
+    min-height: 44px;
+    padding: 0 14px;
+  }
+
+  .agent-send {
+    flex: none;
+    min-width: 64px;
+  }
+}
+
+/* Agent chat redesign: calm chat workspace, debug chrome demoted. */
+.agent-shell {
+  width: min(100%, 960px);
+  margin-top: 20px;
+  display: block;
+}
+
+.agent-chat {
+  min-height: min(680px, calc(100vh - 190px));
+  min-height: min(680px, calc(100dvh - 190px));
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--agent-line) 78%, transparent);
+  border-radius: 22px;
+  background: color-mix(in srgb, var(--paper) 88%, var(--bg));
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-runtime-strip {
+  padding: 14px 16px 0;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.agent-runtime-strip > p {
+  max-width: min(460px, 68%);
+  border: 1px solid var(--agent-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-2) 70%, transparent);
+  padding: 7px 11px;
+  font: 12px/1.2 var(--mono);
+}
+
+.agent-runtime-panel summary {
+  min-height: 30px;
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--agent-line);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper-2) 62%, transparent);
+  padding: 0 10px;
+}
+
+.agent-runtime-panel[open] {
+  position: absolute;
+  right: 16px;
+  z-index: 3;
+  margin-top: 6px;
+  border-radius: 14px;
+}
+
+.agent-chat-log {
+  min-height: 360px;
+  padding: clamp(18px, 3.8vw, 44px);
+}
+
+.agent-chat-log:empty::before {
+  content: none;
+}
+
+.agent-empty-state {
+  margin: auto;
+  max-width: 680px;
+  text-align: center;
+}
+
+.agent-empty-state[hidden] {
+  display: none;
+}
+
+.agent-empty-kicker {
+  margin: 0 0 10px;
+  color: var(--ink-3);
+  font: 11px/1 var(--mono);
+  letter-spacing: .12em;
+  text-transform: uppercase;
+}
+
+.agent-empty-state h2 {
+  margin: 0 0 22px;
+  color: var(--ink);
+  font: 650 clamp(32px, 5vw, 54px)/.98 var(--sans);
+  letter-spacing: -.06em;
+}
+
+.agent-suggestions {
+  justify-content: center;
+  gap: 10px;
+}
+
+.agent-suggestion-chip {
+  border-radius: 16px;
+  padding: 11px 13px;
+  background: var(--paper);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--agent-line) 70%, transparent);
+  transition: transform 120ms ease-out, border-color 120ms ease, background 120ms ease;
+}
+
+.agent-suggestion-chip:active {
+  transform: scale(.98);
+}
+
+.agent-msg {
+  max-width: min(720px, 88%);
+}
+
+.agent-msg--assistant {
+  width: min(720px, 100%);
+}
+
+.agent-msg--assistant .agent-msg-body {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 2px 0;
+  font-size: 16px;
+}
+
+.agent-msg--user .agent-msg-body {
+  border-color: color-mix(in srgb, var(--amber) 72%, var(--rule));
+  border-radius: 0;
+  padding: 11px 14px;
+}
+
+.agent-msg-sources {
+  width: min(640px, 100%);
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  margin-top: 12px;
+}
+
+.agent-msg-source-card {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+  padding: 10px 11px;
+}
+
+.agent-trace {
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--paper-2) 58%, transparent);
+}
+
+.agent-trace summary {
+  padding: 10px 12px;
+}
+
+.agent-composer-wrap {
+  margin: auto clamp(14px, 3vw, 22px) clamp(14px, 3vw, 22px);
+}
+
+.agent-composer {
+  border: 1px solid color-mix(in srgb, var(--agent-line) 78%, transparent);
+  border-radius: 20px;
+  background: var(--paper);
+}
+
+.agent-composer:focus-within {
+  border-color: var(--rust);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 18%, transparent), var(--shadow-warm);
+}
+
+.agent-composer textarea {
+  border-radius: 14px;
+}
+
+.agent-send,
+.agent-save {
+  border-radius: 999px;
+  transition: transform 120ms ease-out, opacity 120ms ease, background 120ms ease, border-color 120ms ease;
+}
+
+.agent-send {
+  border-radius: 2px;
+}
+
+.agent-send:active,
+.agent-save:active {
+  transform: scale(.97);
+}
+
+@media (max-width: 960px) {
+  .agent-shell { margin-top: 8px; }
+  .agent-chat { border-radius: 18px; }
+  .agent-runtime-strip { align-items: center; flex-direction: row; justify-content: space-between; }
+  .agent-runtime-strip > p { max-width: 70%; white-space: nowrap; }
+}
+
+@media (max-width: 640px) {
+  .agent-chat {
+    min-height: calc(100vh - 134px);
+    min-height: calc(100dvh - 134px);
+    border-radius: 16px;
+  }
+
+  .agent-runtime-strip { padding: 10px 10px 0; }
+  .agent-runtime-strip > p { max-width: calc(100% - 82px); }
+  .agent-chat-log { padding: 18px 12px 14px; }
+  .agent-empty-state h2 { font-size: clamp(30px, 10vw, 40px); }
+  .agent-msg { max-width: 100%; }
+  .agent-composer-wrap { margin: 0 8px max(8px, env(safe-area-inset-bottom)); }
+  .agent-composer { border-radius: 18px; }
+  .agent-suggestions { justify-content: flex-start; }
+}
+
+/* Prompt chips now sit under the composer; extra bottom room lifts the input. */
+.agent-composer-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: auto clamp(14px, 3vw, 22px) clamp(34px, 6vh, 72px);
+}
+
+.agent-composer-wrap .agent-composer {
+  order: 1;
+}
+
+.agent-composer-wrap .agent-suggestions {
+  order: 2;
+  margin: 0;
+  padding: 0 6px;
+}
+
+@media (max-width: 640px) {
+  .agent-composer-wrap {
+    bottom: max(18px, env(safe-area-inset-bottom));
+    margin: 0 8px max(18px, env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+}
+
+/* Cleaner agent chrome: keep the content, lose the card stack. */
+.agent-chat {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.agent-runtime-strip > p,
+.agent-runtime-panel summary {
+  border: 0;
+  background: transparent;
+  padding-inline: 0;
+}
+
+.agent-suggestion-chip {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 8px 10px;
+}
+
+.agent-suggestion-chip:hover,
+.agent-suggestion-chip:focus-visible {
+  background: color-mix(in srgb, var(--amber-tint) 56%, transparent);
+}
+
+.agent-suggestion-refresh {
+  min-width: 34px;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.agent-msg-source-card,
+.agent-trace,
+.agent-composer {
+  border: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.agent-msg-source-card {
+  border-left: 2px solid color-mix(in srgb, var(--agent-line) 72%, transparent);
+  border-radius: 0;
+}
+
+.agent-composer {
+  border-top: 1px solid color-mix(in srgb, var(--agent-line) 70%, transparent);
+  border-radius: 0;
+}
+
+.agent-composer:focus-within {
+  border-top-color: var(--rust);
+  box-shadow: none;
+}
+
+@media (max-width: 640px) {
+  .agent-chat,
+  .agent-composer {
+    border-radius: 0;
+  }
+}
+
+/* Kill the big white chat slab; keep only the actual controls visible. */
+.agent-chat {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+}
+
+/* Rebalance after removing the giant chat card: keep a real composer + real chips. */
+.agent-chat {
+  width: min(100%, 900px);
+  margin-inline: auto;
+}
+
+.agent-runtime-strip {
+  justify-content: flex-end;
+  padding-top: 10px;
+}
+
+.agent-runtime-strip > p,
+.agent-runtime-panel summary {
+  border: 1px solid color-mix(in srgb, var(--agent-line) 72%, transparent);
+  background: color-mix(in srgb, var(--paper-2) 72%, transparent);
+  padding-inline: 10px;
+}
+
+.agent-chat-log {
+  min-height: 300px;
+  padding-bottom: 24px;
+}
+
+.agent-composer-wrap {
+  width: min(100%, 820px);
+  margin: 0 auto clamp(34px, 7vh, 84px);
+  gap: 12px;
+}
+
+.agent-composer {
+  border: 1px solid color-mix(in srgb, var(--agent-line) 80%, transparent);
+  border-radius: 24px;
+  background: color-mix(in srgb, var(--paper) 82%, var(--bg));
+  box-shadow: 0 18px 55px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.agent-composer:focus-within {
+  border-color: color-mix(in srgb, var(--rust) 60%, var(--agent-line));
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--amber) 14%, transparent), 0 18px 55px color-mix(in srgb, var(--ink) 7%, transparent);
+}
+
+.agent-suggestions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.agent-suggestion-chip {
+  width: 100%;
+  border: 1px solid color-mix(in srgb, var(--agent-line) 76%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--paper) 70%, transparent);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--ink) 5%, transparent);
+  padding: 10px 14px;
+  overflow: hidden;
+  text-align: center;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-suggestion-refresh {
+  width: auto;
+  min-width: 76px;
+  justify-self: start;
+  font-size: 11px;
+}
+
+@media (max-width: 640px) {
+  .agent-chat-log { min-height: 260px; }
+  .agent-composer-wrap { margin-inline: 8px; }
+  .agent-composer { border-radius: 20px; }
+  .agent-suggestions {
+    display: flex;
+    gap: 8px;
+  }
+  .agent-suggestion-chip {
+    width: auto;
+  }
+}
+
+/* Subtle agent control fill so inputs/buttons don't disappear into the page. */
+.agent-composer,
+.agent-suggestion-chip,
+.agent-runtime-strip > p,
+.agent-runtime-panel summary {
+  background: color-mix(in srgb, var(--paper) 88%, var(--amber-tint));
+}
+
+.agent-send {
+  background: color-mix(in srgb, var(--amber) 88%, white);
+}
+
+.agent-save--ghost {
+  background: color-mix(in srgb, var(--paper) 82%, var(--amber-tint));
+}
+
+/* Make the AI tab controls visibly but softly filled. */
+.agent-view .agent-composer {
+  background: #fffaf3;
+  border-color: #eadbcc;
+}
+
+.agent-view .agent-suggestion-chip,
+.agent-view .agent-runtime-strip > p,
+.agent-view .agent-runtime-panel summary,
+.agent-view .agent-save--ghost {
+  background: #fff7ec;
+  border-color: #eadbcc;
+}
+
+.agent-view .agent-suggestion-chip:hover,
+.agent-view .agent-suggestion-chip:focus-visible {
+  background: #ffefd9;
+}
+
+/* Make the composer fill obvious, not theoretical. */
+.agent-view .agent-composer {
+  background: #fff4e6;
+  border: 1px solid #e4cdb7;
+  box-shadow: 0 12px 35px rgba(83, 52, 24, .07), inset 0 0 0 1px rgba(255,255,255,.55);
+}
+
+.agent-view .agent-composer textarea {
+  background: #fff4e6;
+}
+
+/* Match Board's cream/white/rust language; suggestions are links, not pills. */
+.agent-view .agent-composer {
+  background: var(--paper);
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-view .agent-composer:focus-within {
+  border-color: var(--rust);
+  box-shadow: var(--shadow-warm);
+}
+
+.agent-view .agent-composer textarea {
+  background: transparent;
+}
+
+.agent-view .agent-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 0;
+}
+
+.agent-view .agent-suggestion-chip {
+  width: auto;
+  max-width: min(760px, 100%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  color: var(--ink-2);
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--rust) 35%, transparent);
+  text-underline-offset: 4px;
+  text-decoration-thickness: 1px;
+  white-space: normal;
+}
+
+.agent-view .agent-suggestion-chip:hover,
+.agent-view .agent-suggestion-chip:focus-visible {
+  background: transparent;
+  color: var(--rust);
+  text-decoration-color: var(--rust);
+}
+
+.agent-view .agent-suggestion-refresh {
+  min-width: 0;
+  justify-self: auto;
+  font-size: 11px;
+}
+
+.agent-view .agent-runtime-strip > p,
+.agent-view .agent-runtime-panel summary {
+  background: var(--paper);
+  border-color: var(--rule);
+  border-radius: 2px;
+}
+
+@media (max-width: 640px) {
+  .agent-view .agent-suggestions {
+    align-items: flex-start;
+  }
+
+  .agent-view .agent-suggestion-chip {
+    text-align: left;
+  }
+}
+
+/* Air out suggested inputs. */
+.agent-view .agent-suggestions {
+  gap: 18px;
+}
+
+/* More air between suggested inputs. */
+.agent-view .agent-suggestions {
+  gap: 28px;
+}
+
+.agent-history-bar {
+  width: min(100%, 820px);
+  margin: 10px auto 0;
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.agent-history-btn,
+.agent-history-delete {
+  appearance: none;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+  background: var(--paper);
+  color: var(--ink-2);
+  cursor: pointer;
+  font: 11px/1 var(--mono);
+  padding: 7px 9px;
+}
+
+.agent-history-btn:hover,
+.agent-history-delete:hover { border-color: var(--rust); color: var(--rust); }
+.agent-history-btn:disabled { opacity: .45; cursor: default; }
+.agent-history-btn--danger,
+.agent-history-delete { color: #9f2d20; }
+
+.agent-history-panel {
+  width: min(100%, 820px);
+  max-height: 240px;
+  overflow: auto;
+  margin: 8px auto 0;
+  border: 1px solid var(--rule);
+  background: color-mix(in srgb, var(--paper) 92%, var(--bg));
+}
+
+.agent-history-empty {
+  margin: 0;
+  padding: 12px;
+  color: var(--ink-3);
+  font: 12px/1.3 var(--mono);
+}
+
+.agent-history-item {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 8px;
+  border-top: 1px solid var(--rule);
+  padding: 8px;
+}
+
+.agent-history-item:first-child { border-top: 0; }
+.agent-history-item--active { background: color-mix(in srgb, var(--amber-tint) 36%, transparent); }
+
+.agent-history-load {
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: var(--ink);
+  cursor: pointer;
+  padding: 0;
+  text-align: left;
+}
+
+.agent-history-load span,
+.agent-history-load small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.agent-history-load small {
+  margin-top: 3px;
+  color: var(--ink-3);
+  font: 11px/1.2 var(--mono);
+}
+
+@media (max-width: 640px) {
+  .agent-history-bar,
+  .agent-history-panel { width: calc(100% - 16px); }
+}
+
+.agent-thinking {
+  margin: 8px 0 10px;
+  color: var(--ink-3);
+}
+
+.agent-thinking-label {
+  margin-bottom: 4px;
+  font: 11px/1.2 var(--mono);
+  letter-spacing: .08em;
+  text-transform: lowercase;
+  color: var(--ink-3);
+}
+
+.agent-thinking-body {
+  margin: 0;
+  max-height: 180px;
+  overflow: auto;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font: 12px/1.45 var(--mono);
+  color: color-mix(in srgb, var(--ink-3) 72%, var(--paper));
+}
+
+.agent-thinking-body:empty::before {
+  content: '…';
+  color: var(--ink-4);
+}
+
+/* Subtle note backing: enough to read as cited notes, not full cards. */
+.agent-msg-source-card {
+  background: color-mix(in srgb, var(--amber-tint) 34%, transparent);
+  border-left-color: color-mix(in srgb, var(--amber) 52%, var(--agent-line));
+  border-radius: 8px;
+}
+
+.agent-msg-source-card:hover,
+.agent-msg-source-card:focus-visible {
+  background: color-mix(in srgb, var(--amber-tint) 58%, transparent);
+}
+
+/* Thinking/tools stream: compact live work log, not a debug dump. */
+.agent-thinking {
+  width: min(680px, 100%);
+  border-left: 2px solid color-mix(in srgb, var(--ink-4) 52%, var(--agent-line));
+  background: color-mix(in srgb, var(--paper-2) 34%, transparent);
+  padding: 9px 12px;
+}
+
+.agent-thinking-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+  color: var(--ink-4);
+}
+
+.agent-thinking-live {
+  border: 1px solid color-mix(in srgb, var(--ink-4) 45%, transparent);
+  border-radius: 999px;
+  padding: 2px 6px;
+  color: var(--ink-4);
+  font-size: 9px;
+  animation: agent-pulse 1.1s ease-in-out infinite;
+}
+
+.agent-trace {
+  width: min(680px, 100%);
+  margin-top: 10px;
+}
+
+.agent-trace summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 0 8px;
+  color: var(--ink-2);
+}
+
+.agent-trace summary::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 999px;
+  background: var(--amber);
+}
+
+.agent-trace-list {
+  gap: 7px;
+  padding: 0;
+}
+
+.agent-trace-row {
+  display: grid;
+  grid-template-columns: 118px minmax(0, 1fr);
+  gap: 10px;
+  border-left-width: 3px;
+  background: color-mix(in srgb, var(--paper-2) 42%, transparent);
+  padding: 8px 10px;
+}
+
+.agent-trace-row--thinking {
+  background: color-mix(in srgb, var(--paper-2) 30%, transparent);
+}
+
+.agent-trace-row--tool {
+  background: color-mix(in srgb, #7c3aed 8%, transparent);
+}
+
+.agent-trace-row--result {
+  background: color-mix(in srgb, #2a7a2a 8%, transparent);
+}
+
+.agent-trace-label {
+  color: var(--ink-2);
+  font-weight: 600;
+}
+
+.agent-trace-body {
+  margin: 0;
+  max-height: 140px;
+  overflow: auto;
+}
+
+@media (max-width: 640px) {
+  .agent-trace-row {
+    grid-template-columns: 1fr;
+    gap: 4px;
+  }
+}
+
+/* Source notes stay available without shouting over the answer. */
+.agent-msg-sources {
+  display: block;
+  width: min(640px, 100%);
+  margin-top: 10px;
+}
+
+.agent-msg-sources summary {
+  width: fit-content;
+  color: var(--ink-3);
+  cursor: pointer;
+  font: 11px/1.2 var(--mono);
+  letter-spacing: .04em;
+  text-transform: lowercase;
+}
+
+.agent-msg-source-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.agent-msg-source-card {
+  background: var(--note-bg, var(--paper-2));
+  border: 1px solid var(--rule);
+  border-left: 0;
+  border-radius: 8px;
+  padding: 10px 11px;
+}
+
+.agent-msg-source-card:hover,
+.agent-msg-source-card:focus-visible {
+  background: var(--note-bg, var(--paper-2));
+  border-color: color-mix(in srgb, var(--rust) 18%, var(--rule));
+}
+
+/* Starter prompts: quiet links below the composer. */
+.agent-empty-state h2 {
+  font: 650 clamp(18px, 2vw, 24px)/1.08 var(--sans);
+  letter-spacing: -.035em;
+  margin-bottom: 14px;
+}
+
+.agent-composer-wrap .agent-suggestions {
+  order: 2;
+}
+
+.agent-view .agent-suggestions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 18px;
+  width: min(100%, 760px);
+  margin: 0 auto;
+}
+
+.agent-view .agent-suggestion-chip {
+  width: auto;
+  max-width: min(760px, 100%);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  padding: 0;
+  color: var(--ink-2);
+  font: 13px/1.35 var(--sans);
+  text-align: center;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in srgb, var(--ink-2) 45%, transparent);
+  text-underline-offset: 4px;
+  white-space: normal;
+}
+
+.agent-view .agent-suggestion-chip:hover,
+.agent-view .agent-suggestion-chip:focus-visible {
+  background: transparent;
+  color: var(--rust);
+  text-decoration-color: var(--rust);
+}
+
+.agent-view .agent-suggestion-refresh {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: 11px/1 var(--mono);
+  text-decoration: none;
+}
+
+.agent-view .agent-suggestion-refresh:hover,
+.agent-view .agent-suggestion-refresh:focus-visible {
+  text-decoration: none;
+}
+
+.agent-view .agent-suggestion-refresh[aria-busy="true"] span:first-child {
+  animation: agent-suggestion-spin 0.8s linear infinite;
+}
+
+@keyframes agent-suggestion-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (max-width: 640px) {
+  .agent-view .agent-suggestions {
+    align-items: flex-start;
+  }
+
+  .agent-view .agent-suggestion-chip {
+    text-align: left;
+  }
+}

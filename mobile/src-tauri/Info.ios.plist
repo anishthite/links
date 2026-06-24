@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <!--
+    Merged into the generated bundle Info.plist by `cargo tauri ios build`
+    (PR https://github.com/tauri-apps/tauri/pull/8200). Keep this file small —
+    one key per concrete reason, comments explain why.
+  -->
+
+  <!-- Encryption-export compliance. We use only HTTPS (system TLS), so this is
+       a true statement and avoids the App Store warning. Harmless for sideload. -->
+  <key>ITSAppUsesNonExemptEncryption</key>
+  <false/>
+</dict>
+</plist>

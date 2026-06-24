@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>n1 · nerv compact</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Saira+Extra+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_nerv-shared.css">
+<style>
+  /* N1 — Compact: stacked rows, NERV-quiet
+   * Three rows but each is tight: masthead (24px), write (one line + hint),
+   * search (one line). No "FIND" label. Write has amber ▶ prompt; search has
+   * cyan ⌕ icon. Filter pills row stays small (from _nerv-shared). */
+
+  .masthead {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 0 0 18px;
+    padding: 0;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: .045em; text-transform: uppercase;
+    color: var(--a400);
+    line-height: 1;
+  }
+  .masthead .n {
+    font-family: var(--mono); font-size: 12px; font-weight: 400;
+    color: var(--text-3); letter-spacing: .08em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Write row — amber prompt, larger sans, save hint inline */
+  .write {
+    display: flex; align-items: baseline; gap: 10px;
+    border-bottom: 1px solid var(--rule);
+    padding: 0 0 12px; margin: 0 0 12px;
+  }
+  .write .prompt { color: var(--a400); font-family: var(--mono); font-size: 14px; line-height: 1; flex: none; padding-top: 4px }
+  .write textarea {
+    flex: 1;
+    border: none; background: transparent; outline: none; resize: none;
+    font-family: var(--sans); font-size: 19px; font-weight: 300; line-height: 1.4;
+    color: var(--text); padding: 0; min-height: 1.4em; max-width: 60ch;
+  }
+  .write textarea::placeholder { color: var(--text-3); font-style: italic }
+  .write .hint {
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    text-transform: uppercase; letter-spacing: .10em; align-self: flex-end;
+    white-space: nowrap;
+  }
+  .write .hint kbd { color: var(--a300); padding: 0 3px; border: 1px solid var(--rule-2); font-size: 9px }
+
+  /* Search row — cyan icon, smaller input, no FIND label */
+  .search {
+    display: flex; align-items: baseline; gap: 10px;
+    border-bottom: 1px solid var(--rule);
+    padding: 0 0 10px; margin: 0 0 14px;
+  }
+  .search .icon { color: var(--c400); font-size: 13px; line-height: 1; flex: none }
+  .search input {
+    flex: 1;
+    border: none; background: transparent; outline: none;
+    font-family: var(--sans); font-size: 15px; font-weight: 300;
+    color: var(--text); padding: 0;
+  }
+  .search input::placeholder { color: var(--text-3) }
+  .search .count { font-family: var(--mono); font-size: 10px; color: var(--text-3); letter-spacing: .08em; white-space: nowrap; font-variant-numeric: tabular-nums }
+  .search .count .n { color: var(--c300) }
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ live</a>
+  <a class="active" href="n1-nerv-compact.html">n1 compact</a>
+  <a href="n2-nerv-split.html">n2 split</a>
+  <a href="n3-nerv-mode.html">n3 mode</a>
+  <a href="n4-nerv-strip.html">n4 strip</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1>Notes</h1>
+    <span class="n" data-count>2,397</span>
+  </header>
+
+  <section class="write">
+    <span class="prompt">▶</span>
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <span class="hint"><kbd>⌘</kbd><kbd>↵</kbd> save</span>
+  </section>
+
+  <div class="search">
+    <span class="icon">⌕</span>
+    <input type="text" id="search" placeholder="search…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>n1 · nerv compact</span><span>nerv chrome, stripped of cosplay</span></footer>
+</main>
+<script src="_shared.js"></script>
+</body>
+</html>

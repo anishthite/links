@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>05-editorial · masthead study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&family=EB+Garamond:ital,wght@0,400;0,500;1,400&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* ─── Editorial masthead ──────────────────────────────────────────────
+   * Real publication front-page: thin top rule, three-column eyebrow row
+   * (date | wordmark | volume), heavy double-rule below.
+   * Wordmark uses a real text serif (EB Garamond) for the only one of these
+   * studies that leans into a print-publication feel. Italic dek underneath.
+   * ─────────────────────────────────────────────────────────────────── */
+  .masthead { margin-bottom: 40px; }
+  .masthead .rule-top { height: 0; border-top: 1px solid var(--stone-900); }
+  .masthead .rule-bot { height: 0; border-top: 1px solid var(--stone-900); margin-top: 14px; position: relative; }
+  .masthead .rule-bot::after { content: ''; position: absolute; left: 0; right: 0; top: 3px; border-top: 1px solid var(--stone-900); }
+
+  .masthead .row {
+    display: grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items: end;
+    gap: 24px;
+    padding: 22px 0 6px;
+  }
+  .masthead .row .l, .masthead .row .r {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .14em;
+    color: var(--stone-500);
+    line-height: 1.85;
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .masthead .row .r { text-align: right; }
+  .masthead .row .l .v, .masthead .row .r .v { color: var(--stone-900); font-weight: 500; }
+
+  .masthead h1 {
+    margin: 0;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: clamp(56px, 9vw, 104px);
+    font-weight: 500;
+    letter-spacing: -.02em;
+    line-height: .85;
+    text-align: center;
+    color: var(--stone-900);
+  }
+  .masthead h1 .accent { color: var(--swiss-red); font-style: italic; font-weight: 400; }
+
+  .masthead .dek {
+    margin: 16px 0 0;
+    font-family: 'EB Garamond', Georgia, serif;
+    font-size: 17px;
+    font-style: italic;
+    font-weight: 400;
+    color: var(--stone-500);
+    text-align: center;
+    letter-spacing: .005em;
+    max-width: 60ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+</style>
+</head>
+<body>
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ chosen</a>
+  <a class="active" href="05-editorial.html">05 editorial</a>
+  <a href="06-ledger.html">06 ledger</a>
+  <a href="07-quiet.html">07 quiet</a>
+  <a href="08-stamp.html">08 stamp</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <div class="rule-top"></div>
+    <div class="row">
+      <div class="l">
+        Est. <span class="v">MMXII</span><br>
+        Vol. <span class="v">XIV</span>
+      </div>
+      <h1>Notes<span class="accent">.</span></h1>
+      <div class="r">
+        No. <span class="v" data-count>1,733</span><br>
+        Thu · May 28 · 2026
+      </div>
+    </div>
+    <div class="rule-bot"></div>
+    <p class="dek">A running log, fourteen years deep — whatever I&rsquo;ve thought worth keeping.</p>
+  </header>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> save</div>
+  </section>
+
+  <div class="search">
+    <span class="label">Find</span>
+    <input type="text" id="search" placeholder="search notes…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>05 · editorial masthead</span><span>real-publication chrome · serif wordmark · double rule</span></footer>
+</main>
+<script src="_shared.js"></script>
+</body>
+</html>

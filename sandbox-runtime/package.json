@@ -1,0 +1,12 @@
+{
+  "name": "board-sandbox-runtime",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "pi:prompt": "node pi-runner.js"
+  },
+  "dependencies": {
+    "@earendil-works/pi-coding-agent": "0.79.9",
+    "@earendil-works/pi-ai": "0.79.9"
+  }
+}

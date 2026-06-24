@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>n3 · nerv mode</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Saira+Extra+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_nerv-shared.css">
+<style>
+  /* N3 — Mode: one input bar that toggles between WRITE and SEARCH
+   * Default mode is WRITE (amber ▶). Press ⌘F or `/` to switch to SEARCH
+   * mode (cyan ⌕). The bar's prompt char + accent color tell you which mode.
+   * Hit ESC from search to return to write mode. Tab pills row stays tiny. */
+
+  .masthead {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 0 0 14px; padding: 0;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: .045em; text-transform: uppercase;
+    color: var(--a400); line-height: 1;
+  }
+  .masthead .n {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-3); letter-spacing: .08em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* The unified bar */
+  .bar {
+    display: flex; align-items: baseline; gap: 12px;
+    border-top: 1px solid var(--mode-c, var(--a700));
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 0;
+    margin: 0 0 14px;
+    transition: border-color .18s;
+  }
+  .bar .prompt {
+    color: var(--mode-c, var(--a400));
+    font-family: var(--mono); font-size: 14px;
+    line-height: 1; flex: none; padding-top: 4px;
+    transition: color .18s;
+  }
+  .bar .field {
+    flex: 1; min-width: 0; position: relative;
+  }
+  .bar textarea, .bar input {
+    width: 100%;
+    border: none; background: transparent; outline: none; resize: none;
+    font-family: var(--sans); font-size: 19px; font-weight: 300; line-height: 1.4;
+    color: var(--text); padding: 0; min-height: 1.4em;
+  }
+  .bar textarea::placeholder, .bar input::placeholder { color: var(--text-3); font-style: italic }
+  .bar input { font-style: normal }
+  .bar .modes {
+    display: flex; gap: 10px; font-family: var(--mono); font-size: 10px;
+    text-transform: uppercase; letter-spacing: .10em; color: var(--text-3);
+    white-space: nowrap; align-self: flex-end;
+  }
+  .bar .modes kbd { color: var(--mode-c, var(--a300)); padding: 0 3px; border: 1px solid var(--rule-2); font-size: 9px }
+  .bar .modes .active { color: var(--mode-c, var(--a300)) }
+
+  /* Mode states */
+  body[data-mode="write"]  .bar { --mode-c: var(--a400) }
+  body[data-mode="search"] .bar { --mode-c: var(--c400) }
+
+  body[data-mode="write"]  .bar #write   { display: block }
+  body[data-mode="write"]  .bar #search  { display: none }
+  body[data-mode="search"] .bar #write   { display: none }
+  body[data-mode="search"] .bar #search  { display: block }
+
+  body[data-mode="write"]  .modes .mw { color: var(--a300) }
+  body[data-mode="search"] .modes .ms { color: var(--c300) }
+
+  .count-row {
+    display: flex; justify-content: flex-end;
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    letter-spacing: .08em; margin: 0 0 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .count-row .n { color: var(--c300) }
+  body[data-mode="write"] .count-row { visibility: hidden }
+</style>
+</head>
+<body data-mode="write">
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ live</a>
+  <a href="n1-nerv-compact.html">n1 compact</a>
+  <a href="n2-nerv-split.html">n2 split</a>
+  <a class="active" href="n3-nerv-mode.html">n3 mode</a>
+  <a href="n4-nerv-strip.html">n4 strip</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1>Notes</h1>
+    <span class="n" data-count>2,397</span>
+  </header>
+
+  <div class="bar">
+    <span class="prompt" id="prompt">▶</span>
+    <div class="field">
+      <textarea id="write" placeholder="write a note…" rows="1"></textarea>
+      <input id="search" type="text" placeholder="search 2,397 notes…">
+    </div>
+    <div class="modes">
+      <span class="mw"><kbd>⌘↵</kbd> save</span>
+      <span class="ms"><kbd>⌘F</kbd> find</span>
+      <span><kbd>Esc</kbd> back</span>
+    </div>
+  </div>
+
+  <div class="count-row"><span class="n" id="count">8</span>&nbsp;/&nbsp;<span data-count>2,397</span> matched</div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>n3 · nerv mode</span><span>one input bar · two modes · ⌘F to find</span></footer>
+</main>
+<script src="_shared.js"></script>
+<script>
+  // Mode toggle wiring (independent of _shared.js which only touches #search input)
+  const body = document.body;
+  const promptEl = document.getElementById('prompt');
+  const writeEl = document.getElementById('write');
+  const searchEl = document.getElementById('search');
+
+  function setMode(m) {
+    body.dataset.mode = m;
+    promptEl.textContent = m === 'search' ? '⌕' : '▶';
+    if (m === 'search') searchEl.focus();
+    else writeEl.focus();
+  }
+
+  document.addEventListener('keydown', e => {
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      setMode('search');
+    } else if (e.key === 'Escape' && body.dataset.mode === 'search') {
+      searchEl.value = '';
+      searchEl.dispatchEvent(new Event('input', { bubbles: true }));
+      setMode('write');
+    } else if (e.key === '/' && document.activeElement !== writeEl && document.activeElement !== searchEl) {
+      e.preventDefault();
+      setMode('search');
+    }
+  });
+</script>
+</body>
+</html>

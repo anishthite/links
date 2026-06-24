@@ -1,0 +1,62 @@
+name = "links"
+main = "worker/index.ts"
+workers_dev = true
+compatibility_date = "2026-06-22"
+compatibility_flags = ["nodejs_compat"]
+[triggers]
+crons = ["0 * * * *"]
+
+[assets]
+directory = "dist"
+binding = "ASSETS"
+
+# NOTE: keep `account_id` out of committed config. For local non-interactive
+# CLI runs against the multi-account OAuth token, use:
+#   export CLOUDFLARE_ACCOUNT_ID=38136d7e8e51d4450fd5687cdba2ce2a
+# (anishthite@gmail.com's Account). See implementation-notes D-107.
+
+# D1 database binding. Production DB created 2026-05-28 in WNAM.
+[[d1_databases]]
+binding = "DB"
+database_name = "links-board-db"
+database_id = "e1622529-d214-43ed-9964-95fc73de3be9"
+
+# Cloudflare Access (Zero Trust) — see implementation-notes/2026-05-28-cloudflare-access-auth.html.
+# Set these in the Worker project's Production environment variables (Dashboard →
+# Workers & Pages → board → Settings → Environment variables). They're not secrets
+# (AUD is in every JWT, team domain is in `iss`) but keeping them out of the
+# committed config means you can rotate the Access app without a redeploy.
+#
+# [vars]
+# ACCESS_TEAM_DOMAIN = "<team>.cloudflareaccess.com"
+# ACCESS_AUD = "<application-aud-hex-from-access-dashboard>"
+#
+# Leave both unset locally ⇒ server/auth.ts no-ops with a warning.
+#
+# Cloudflare Sandbox worker container. Requires Workers Containers on the account.
+[[containers]]
+class_name = "Sandbox"
+image = "./sandbox-runtime/Dockerfile"
+image_build_context = "./sandbox-runtime"
+instance_type = "basic"
+max_instances = 10
+
+[[durable_objects.bindings]]
+name = "Sandbox"
+class_name = "Sandbox"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["Sandbox"]
+
+# Future bindings land here as we grow:
+# [ai]               # AI Gateway / Workers AI
+# binding = "AI"
+#
+# [[vectorize]]      # Semantic search
+# binding = "VECTORIZE"
+# index_name = "notes-embeddings"
+#
+# [[r2_buckets]]     # Note attachments
+# binding = "ATTACHMENTS"
+# bucket_name = "board-attachments"

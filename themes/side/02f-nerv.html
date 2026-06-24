@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>02f · Swiss layout · Nervos palette</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&family=Saira+Extra+Condensed:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  /* Swiss typographic system + Nervos color palette.
+     Layout DNA from 02e-bg (Swiss). Chrome and accents borrowed from nerv-os-tokens. */
+  :root {
+    /* Nervos backgrounds */
+    --void:#05040A; --deep:#0A0810; --base:#100D16; --surface:#17131E; --raised:#1F1A28;
+    /* Nervos accents */
+    --a300:#FFB347; --a400:#F59B2D; --a500:#E8873D; --a700:#B45D1F; --a800:#8C4716;
+    --o400:#F06800;
+    --c300:#3CFFD0; --c400:#0CC0B8; --c700:#066058;
+    --p300:#AC87DB; --p400:#9570C7; --p700:#553A7A;
+    --g400:#48C830;
+    --y400:#D49A00;
+    --r400:#C80010;
+    --n300:#A89484; --n400:#887468; --n500:#685850; --n600:#4C403A; --n700:#382E2A;
+    /* Semantic */
+    --text:    #E0D8CC;
+    --text-2:  var(--n400);
+    --text-3:  var(--n600);
+    --rule:    rgba(245,155,45,0.10);
+    --rule-2:  rgba(245,155,45,0.22);
+    --rule-3:  rgba(245,155,45,0.55);
+    /* Fonts */
+    --display:'Saira Extra Condensed','Barlow Condensed',sans-serif;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+    --mono:'JetBrains Mono','SF Mono',monospace;
+    --glow-a:0 0 24px rgba(245,155,45,0.10);
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  /* CRT atmosphere — faint, not loud */
+  .scanlines{position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.03) 3px,rgba(0,0,0,0.03) 4px)}
+  .vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(5,4,10,0.55) 100%)}
+
+  .theme-nav{position:fixed;top:24px;right:24px;z-index:10000;display:flex;flex-wrap:wrap;max-width:60vw;font-family:var(--mono);font-size:11px;background:var(--deep);border:1px solid var(--rule-2)}
+  .theme-nav a{padding:6px 10px;color:var(--text-2);text-decoration:none;text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--rule)}
+  .theme-nav a:last-child{border-right:none}
+  .theme-nav a.active{background:var(--a800);color:var(--a100,#FFE0B2)}
+  .theme-nav a:hover:not(.active){color:var(--a300)}
+
+  .board{max-width:1400px;margin:0 auto;padding:64px 48px 96px;position:relative}
+
+  /* Masthead — Swiss size, Saira display, NERV accent */
+  .masthead{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;padding-bottom:32px}
+  .display{margin:0;font-family:var(--display);font-size:clamp(56px,9vw,104px);font-weight:500;line-height:.9;letter-spacing:0.02em;text-transform:uppercase;color:var(--text)}
+  .display .accent{color:var(--a400);text-shadow:var(--glow-a)}
+  .meta-line{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-2)}
+  .meta-line .v{color:var(--a300)}
+  .meta-line .dot{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--g400);margin:0 6px 0 2px;vertical-align:middle;animation:breathe 3s ease-in-out infinite;box-shadow:0 0 6px rgba(80,255,16,0.5)}
+  @keyframes breathe{0%,100%{opacity:0.5}50%{opacity:1}}
+
+  /* Nerv divider — colored gradient rule */
+  .nerv-divider{height:1px;margin:0 0 36px;background:linear-gradient(90deg,transparent,var(--c700) 12%,var(--a700) 38%,var(--a400) 50%,var(--a700) 62%,var(--c700) 88%,transparent)}
+
+  .write{margin:0 0 36px;border-top:1px solid var(--rule-2);border-bottom:1px solid var(--rule);padding:20px 0}
+  .write textarea{width:100%;max-width:60ch;border:none;background:transparent;outline:none;resize:none;font-family:var(--sans);font-size:22px;font-weight:300;line-height:1.4;color:var(--text);padding:0;min-height:1.4em}
+  .write textarea::placeholder{color:var(--text-3);font-weight:300}
+  .write .hint{margin-top:10px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3)}
+  .write .hint kbd{font-family:var(--mono);padding:1px 5px;border:1px solid var(--rule-2);font-size:10px;color:var(--a300)}
+
+  .search{margin:0 0 16px;border-bottom:1px solid var(--rule-2);padding-bottom:10px;display:flex;align-items:baseline;gap:16px}
+  .search .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--a400)}
+  .search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:20px;font-weight:300;color:var(--text);padding:0}
+  .search input::placeholder{color:var(--text-3)}
+  .search .count{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-2);white-space:nowrap}
+  .search .count .n{color:var(--a300)}
+
+  /* Pills row */
+  .pills{margin:0 0 40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  .pills .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-2);margin-right:4px}
+  .pill{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:5px 11px;border:1px solid var(--c,var(--rule-2));background:transparent;color:var(--c,var(--text-2));cursor:pointer;transition:all .12s;border-radius:999px;font-weight:500}
+  .pill:hover{background:var(--c,var(--raised));color:var(--void)}
+  .pill.active{background:var(--c,var(--a400));border-color:var(--c,var(--a400));color:var(--void);font-weight:600}
+  .pill .n{margin-left:6px;opacity:.7;font-size:10px}
+  .pill.all{border-style:dashed;color:var(--text-2);border-color:var(--rule-2)}
+  .pill.all.active{background:var(--text);color:var(--void);border-color:var(--text)}
+  .pill.clear{background:transparent;color:var(--a400);border-color:var(--a400)}
+  .pill.clear:hover{background:var(--a400);color:var(--void)}
+
+  /* Notes — subtle dark-tinted bg per primary tag */
+  .notes{columns:1;column-gap:22px}
+  @media(min-width:720px){.notes{columns:2}}
+  @media(min-width:1080px){.notes{columns:3}}
+  @media(min-width:1440px){.notes{columns:4}}
+
+  .note{break-inside:avoid;margin:0 0 22px;padding:18px 20px 16px;background:var(--bg,var(--surface));border:1px solid var(--rule);cursor:pointer;transition:border-color .15s, box-shadow .15s}
+  .note:hover{border-color:var(--rule-3);box-shadow:var(--glow-a)}
+  .note .text{font-family:var(--sans);font-size:17px;font-weight:400;line-height:1.5;color:var(--text);margin:0;max-width:60ch}
+  .note .caption{margin-top:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3);display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+  .note .caption .dot{color:var(--rule-2)}
+  .note .caption .tag-mini{color:var(--c-fg,var(--text-2));font-weight:500}
+  .note .caption .tag-mini.matched{color:var(--text);text-decoration:underline;text-decoration-color:var(--c-fg,var(--a400));text-decoration-thickness:2px;text-underline-offset:3px}
+
+  footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--rule-2);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="../index.html">ALL</a>
+  <a href="../02e-bg.html">02e-BG ★</a>
+  <a class="active" href="02f-nerv.html">02f-NERV</a>
+  <a href="03-nerv.html">03 NERV</a>
+  <a href="03b-nerv-light.html">03b LIGHT</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1 class="display">Notes<span class="accent">.</span></h1>
+    <span class="meta-line"><span class="dot"></span><span class="v">1,776</span> · 2026 · OPERATOR ANISH</span>
+  </header>
+  <div class="nerv-divider"></div>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> SAVE</div>
+  </section>
+
+  <div class="search">
+    <span class="label">FIND</span>
+    <input type="text" id="search" placeholder="search notes…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+
+  <div class="notes" id="notes"></div>
+
+  <footer><span>02f · swiss layout · nervos palette</span><span>same eight notes · tags mapped to MAGI colors</span></footer>
+</main>
+
+<script>
+  const NOTES = [
+    { uuid:'a1', text:'buy bok choy', updated:'2026-05-22T18:04:00Z', tags:['todo','shop'] },
+    { uuid:'b2', text:'idea: sticky note board with masonry layout via pretext', updated:'2026-05-22T15:31:00Z', tags:['idea','board'] },
+    { uuid:'c3', text:'the difference between vision and hallucination is whether other people can see it too', updated:'2026-05-21T22:11:00Z', tags:['thought'] },
+    { uuid:'d4', text:'todo: ssh into the new box, set up tailscale, install zellij', updated:'2026-05-21T09:47:00Z', tags:['todo','infra'] },
+    { uuid:'e5', text:"today's lesson — pretext is a library not a framework. you render with whatever.", updated:'2026-05-20T16:22:00Z', tags:['lesson'] },
+    { uuid:'f6', text:'jamie birthday march 14', updated:'2026-05-19T11:00:00Z', tags:['reminder','people'] },
+    { uuid:'g7', text:'the way to import 40 thousand art hoes to SF to teach engineers love (and thus save humankind) would be to open an elite fashion school. considering the materials science infrastructure this is actually the obvious path forward for fashion.', updated:'2026-05-18T03:14:00Z', tags:['idea','hot-take'] },
+    { uuid:'h8', text:'every infra choice is a bet on who you will be in two years', updated:'2026-05-17T08:00:00Z', tags:['thought','infra'] },
+  ];
+  const fmt = iso => { const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${d.getUTCFullYear()}.${p(d.getUTCMonth()+1)}.${p(d.getUTCDate())}`; };
+
+  /* Nervos-aligned tag system: chrome (saturated) + bg (deep tinted void) */
+  const TAG_COLORS = {
+    todo:'#C80010',  shop:'#F06800',  idea:'#0CC0B8',  board:'#9570C7',
+    thought:'#FFB347', infra:'#F59B2D', lesson:'#F4B000', reminder:'#48C830',
+    people:'#AC87DB', 'hot-take':'#FF3320'
+  };
+  const TAG_BG = {
+    todo:'#1e0a0c',  shop:'#1f1408',  idea:'#0a1f1d',  board:'#150f24',
+    thought:'#1e1a10', infra:'#1d1610', lesson:'#1a1608', reminder:'#0e1f12',
+    people:'#1a142a', 'hot-take':'#220e0e'
+  };
+  const tagColor = t => TAG_COLORS[t] || '#A89484';
+  const tagBg = t => TAG_BG[t] || '#17131E';
+
+  const counts = NOTES.reduce((acc,n) => { for (const t of n.tags) acc[t] = (acc[t]||0)+1; return acc; }, {});
+  const TAG_ORDER = Object.entries(counts).sort((a,b) => b[1]-a[1] || a[0].localeCompare(b[0])).map(([t]) => t);
+  const active = new Set();
+
+  function renderPills() {
+    const p = document.getElementById('pills');
+    const allBtn = `<button class="pill all ${active.size===0?'active':''}" data-tag="">ALL <span class="n">${NOTES.length}</span></button>`;
+    const pills = TAG_ORDER.map(t => `<button class="pill ${active.has(t)?'active':''}" data-tag="${t}" style="--c:${tagColor(t)}">${t}<span class="n">${counts[t]}</span></button>`).join('');
+    const clear = active.size ? `<button class="pill clear" data-tag="__clear__">CLEAR ✕</button>` : '';
+    p.innerHTML = `<span class="label">FILTER</span>${allBtn}${pills}${clear}`;
+  }
+
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    let list = NOTES;
+    if (active.size > 0) list = list.filter(n => n.tags.some(t => active.has(t)));
+    if (q) list = list.filter(n => n.text.toLowerCase().includes(q));
+    const root = document.getElementById('notes'); root.innerHTML = '';
+    list.forEach(n => {
+      const el = document.createElement('article'); el.className = 'note';
+      el.style.setProperty('--bg', tagBg(n.tags[0]));
+      const tagMini = n.tags.map(t => `<span class="tag-mini ${active.has(t)?'matched':''}" style="--c-fg:${tagColor(t)}">${t}</span>`).join('<span class="dot">·</span>');
+      el.innerHTML = `<p class="text"></p><div class="caption"><span>${fmt(n.updated)}</span><span class="dot">·</span>${tagMini}</div>`;
+      el.querySelector('.text').textContent = n.text;
+      root.appendChild(el);
+    });
+    document.getElementById('count').textContent = list.length;
+    renderPills();
+  }
+  render();
+
+  document.getElementById('pills').addEventListener('click', e => {
+    const btn = e.target.closest('.pill'); if (!btn) return;
+    const tag = btn.dataset.tag;
+    if (tag === '' || tag === '__clear__') active.clear();
+    else { active.has(tag) ? active.delete(tag) : active.add(tag); }
+    render();
+  });
+  let t; document.getElementById('search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 150); });
+</script>
+</body>
+</html>

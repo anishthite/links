@@ -1,0 +1,154 @@
+{
+  "generated_at": 1780030727438,
+  "final_jsonl_rows": 1728,
+  "d1_notes_rows": 2397,
+  "missing_source_text": 0,
+  "missed_count": 20,
+  "breakdown": {
+    "orphan": 0,
+    "text_drift": 0,
+    "dedup": 20
+  },
+  "misses": [
+    {
+      "uuid": "7tiLQRK29b3boTvfAkwMQq",
+      "content_hash": "e79b74ec9f69",
+      "text_preview": "universl transformer + routing transformer",
+      "cause": "dedup",
+      "nearest_match_uuid": "bMV4xysadmVzZEPEoSBjop"
+    },
+    {
+      "uuid": "dhPHaj4v5zsSob6tWFqfK9",
+      "content_hash": "006475f68142",
+      "text_preview": "the idea factory",
+      "cause": "dedup",
+      "nearest_match_uuid": "gbVUVZvnmbtBxScTHWauh8"
+    },
+    {
+      "uuid": "4TNmfZmAFzxuztCdxFrzYV",
+      "content_hash": "ad85d0189ca4",
+      "text_preview": "fulyl generative ui vs chat + generative ui, can you make hy",
+      "cause": "dedup",
+      "nearest_match_uuid": "oRaD2gDWr8XZfWfjCJTvzF"
+    },
+    {
+      "uuid": "9rH91J2iRdTzi7JoVwiXKW",
+      "content_hash": "7a451de05fbe",
+      "text_preview": "n8n but fully natural language (easier to use and fucks up l",
+      "cause": "dedup",
+      "nearest_match_uuid": "4x2rDYTxx48zooPitABGyj"
+    },
+    {
+      "uuid": "5Yqh4Jsbz517HmvXEdNZzw",
+      "content_hash": "06d462a6277a",
+      "text_preview": "browserbase to scroll ig reels for you   ",
+      "cause": "dedup",
+      "nearest_match_uuid": "vpz3EQ8YZzXQ4fJhuoEYNJ"
+    },
+    {
+      "uuid": "iwZTX3M2xGmdxsaqnfYW22",
+      "content_hash": "06d462a6277a",
+      "text_preview": "browserbase to scroll ig reels for you ",
+      "cause": "dedup",
+      "nearest_match_uuid": "vpz3EQ8YZzXQ4fJhuoEYNJ"
+    },
+    {
+      "uuid": "dEwiNF5gqRHhwwtkysGqmU",
+      "content_hash": "da92da545483",
+      "text_preview": "jogc-divh-hmcs-kgdp-zrkn",
+      "cause": "dedup",
+      "nearest_match_uuid": "WciAxUeCnefaD66xVut3De"
+    },
+    {
+      "uuid": "8SSFGcUdGx49gwSmvrU4sQ",
+      "content_hash": "af332102bbca",
+      "text_preview": "i realized none of my friends care about me ",
+      "cause": "dedup",
+      "nearest_match_uuid": "c22Y8tPeADLmg5VTNbfMVv"
+    },
+    {
+      "uuid": "bpSNBpCiGfJrN1BoCkiqzK",
+      "content_hash": "bb1f54dd6d4b",
+      "text_preview": "codeing agent to detect  ",
+      "cause": "dedup",
+      "nearest_match_uuid": "oxARmYAwsEkN7ETVnqAWpC"
+    },
+    {
+      "uuid": "2td9xp9HtCuh7NvPmFd6J4",
+      "content_hash": "8341e1f764e3",
+      "text_preview": "canvas? ",
+      "cause": "dedup",
+      "nearest_match_uuid": "stgb5HJTT365qzig22yeNf"
+    },
+    {
+      "uuid": "aKxqgJnfFewnYNjWUgdQsN",
+      "content_hash": "8151e89047b9",
+      "text_preview": "Hmm. I had never thought of it like this. Is it possible for",
+      "cause": "dedup",
+      "nearest_match_uuid": "8TPQc4HqELNqxZ4NwkKNdX"
+    },
+    {
+      "uuid": "Y5t8jwz5JECQ7RenMyeX74",
+      "content_hash": "e9e6b0ccff3d",
+      "text_preview": "Every great story on the planet happened when someone decide",
+      "cause": "dedup",
+      "nearest_match_uuid": "S83G7ek8gU7btRjxzwzjKF"
+    },
+    {
+      "uuid": "qFoDUng5SfAsQ5kZQLoyT6",
+      "content_hash": "0f4f62ea5ae8",
+      "text_preview": "Someone needs to make a really good local browser use agent ",
+      "cause": "dedup",
+      "nearest_match_uuid": "fVSKHBwi24Jh5Nr5BK5qrr"
+    },
+    {
+      "uuid": "SSMgFqsJadHs63A9PyLvzW",
+      "content_hash": "97d6d82ca579",
+      "text_preview": "The person in the room that no one listens to often finds th",
+      "cause": "dedup",
+      "nearest_match_uuid": "ZyDczTku7EbYRNstMEArGw"
+    },
+    {
+      "uuid": "2P6nVfdqNEbyo7cJmHzBNG",
+      "content_hash": "1fe94254c2b6",
+      "text_preview": "fix email ",
+      "cause": "dedup",
+      "nearest_match_uuid": "c3AKKGRebGMB3mcJvmofEE"
+    },
+    {
+      "uuid": "ogy4nM3UaTNW93mVMJHVhk",
+      "content_hash": "f1819a21e89d",
+      "text_preview": "sitebrew makes poeple generate code in bulk, use that to bui",
+      "cause": "dedup",
+      "nearest_match_uuid": "stoxc8P5D7utAkPaSJakqz"
+    },
+    {
+      "uuid": "jT1wnsDTiM4C8b5TR44yvc",
+      "content_hash": "f1819a21e89d",
+      "text_preview": "sitebrew makes poeple generate code in bulk, use that to bui",
+      "cause": "dedup",
+      "nearest_match_uuid": "stoxc8P5D7utAkPaSJakqz"
+    },
+    {
+      "uuid": "bE91PVRkx45CGDQpUS697E",
+      "content_hash": "090214aced55",
+      "text_preview": "reread the llm security twitter account ",
+      "cause": "dedup",
+      "nearest_match_uuid": "owdoGH8wsBHei48uvKv3YM"
+    },
+    {
+      "uuid": "9bqSKkidq2EaiSU1Bbyw5H",
+      "content_hash": "0489f7cd839d",
+      "text_preview": "everyone around me is winning, when will it be my turn ",
+      "cause": "dedup",
+      "nearest_match_uuid": "pHfwv6XPEGmx5uXqhRouox"
+    },
+    {
+      "uuid": "DkMKavjtufcsrigspeGwMv",
+      "content_hash": "c66b7499bfe6",
+      "text_preview": "make an abrusdity say the opposite pause and subvert sincere",
+      "cause": "dedup",
+      "nearest_match_uuid": "pQpp6HGXHtVFmbq9paeXTe"
+    }
+  ]
+}

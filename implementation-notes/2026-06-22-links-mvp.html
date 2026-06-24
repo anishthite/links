@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — links-mvp</title>
+<meta name="task" content="Build and deploy MVP of a link library app on Cloudflare Worker + D1.">
+<meta name="date-started" content="2026-06-22">
+<meta name="date-updated" content="2026-06-22">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,d1,worker,deploy">
+<meta name="related" content="">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  h3 { font-size: 13px; margin: 1rem 0 .3rem; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .q { border-left: 3px solid #b85c00; background: #fff8ee; padding: .4rem .7rem; margin: .4rem 0; }
+  .q .id { color: #b85c00; font-weight: 700; }
+  .q.resolved { border-left-color: #2a7a2a; background: #f1faf1; }
+  .q.resolved .id { color: #2a7a2a; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Build links MVP</h1>
+<p class="meta">
+  <code>no-git</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-22 · status <b>shipped</b> · blast <span class="blast-med">medium</span>
+</p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Ship a deployed single-user link library with save, extract, tag, search, and chat over stored content.</div>
+  <b>Source</b><div>User-provided URLs; Worker fetches pages and stores extracted metadata plus readable text.</div>
+  <b>Surface</b><div><code>/</code>, <code>GET/POST/PATCH/DELETE /api/links</code>, <code>POST /api/links/:id/refresh</code>, <code>POST /api/chat</code>, live at <code>https://links.anishthite.workers.dev</code>.</div>
+  <b>Schema</b><div>New <code>links</code> table and <code>links_fts</code> virtual table in D1.</div>
+  <b>Mobile</b><div>Single-column cards and stacked chat/search layout.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>API contract</h2>
+<h3>Request</h3>
+<pre>POST /api/links
+{ url: string, tags?: string[], note?: string }
+
+PATCH /api/links/:id
+{ tags?: string[], note?: string, title?: string }
+
+POST /api/links/:id/refresh
+{}
+
+POST /api/chat
+{ message: string }</pre>
+<h3>Response — <code>LinkWire</code></h3>
+<pre>{
+  id: string,
+  url: string,
+  normalizedUrl: string,
+  title: string,
+  description: string,
+  siteName: string,
+  tags: string[],
+  note: string,
+  contentText: string,
+  savedAt: number,
+  fetchedAt: number,
+  status: "ready" | "failed"
+}</pre>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Normalize URL; reject invalid or duplicate <code>normalized_url</code>.</li>
+  <li>Fetch page server-side; extract <code>&lt;title&gt;</code>, meta description, site, and body text with script/style stripping.</li>
+  <li>Store link row; mirror searchable fields into <code>links_fts</code>.</li>
+  <li>Search via FTS <code>MATCH</code>; fall back to recent rows when query is empty.</li>
+  <li>Answer questions by retrieving top matches, then synthesize with local snippets or model text when creds exist.</li>
+</ol>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Header</b>: app title, short explainer, search box.</li>
+  <li><b>Add form</b>: URL input, tags input, note textarea, submit.</li>
+  <li><b>Results list</b>: card per link with title, site, tags, note, excerpt, actions.</li>
+  <li><b>Chat panel</b>: ask a question; show answer and cited links.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>package.json</code></td><td>new</td><td>Declare Worker/Vite/D1 MVP dependencies and scripts.</td></tr>
+  <tr><td><code>wrangler.toml</code></td><td>new</td><td>Bind Worker assets and the remote <code>links-db</code> D1 database.</td></tr>
+  <tr><td><code>db/migrations/0001_initial.sql</code></td><td>new</td><td>Create <code>links</code>, <code>links_fts</code>, and sync triggers.</td></tr>
+  <tr><td><code>server/lib/normalize.ts</code></td><td>new</td><td>Normalize URLs, clean tags, and compute content hashes.</td></tr>
+  <tr><td><code>server/lib/extract.ts</code></td><td>new</td><td>Fetch and strip readable metadata/text from saved pages.</td></tr>
+  <tr><td><code>server/lib/links.ts</code></td><td>new</td><td>Implement create/search/update/refresh/delete and retrieval-first chat.</td></tr>
+  <tr><td><code>server/routes/links.ts</code></td><td>new</td><td>Expose the links CRUD API.</td></tr>
+  <tr><td><code>server/routes/chat.ts</code></td><td>new</td><td>Expose the retrieval chat endpoint.</td></tr>
+  <tr><td><code>src/main.ts</code></td><td>new</td><td>Render the add/search/list/chat single-page UI.</td></tr>
+  <tr><td><code>src/style.css</code></td><td>new</td><td>Style the MVP cards and responsive layout.</td></tr>
+  <tr><td><code>tests/*.test.ts</code></td><td>new</td><td>Lock URL normalization and HTML extraction behavior.</td></tr>
+  <tr><td><code>README.md</code></td><td>new</td><td>Document local dev, deploy, and the live URL.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Keep tags as JSON in <code>links.tags</code>. Faster MVP; no join table yet.</td></tr>
+  <tr><td>D-002</td><td>Store extracted plain text plus markdown-ish text in the main row. Enough for search and agent answers without extra blob storage.</td></tr>
+  <tr><td>D-003</td><td>Use D1 <code>FTS5</code> over app-side ranking. Native search is cheaper and simpler.</td></tr>
+  <tr><td>D-004</td><td>Deploy as a Worker with static assets. Matches <code>board</code>; one deployment path.</td></tr>
+  <tr><td>D-005</td><td>Make chat retrieval-first and deterministic. Ships without any extra model binding.</td></tr>
+</table>
+
+<h2>Deviations</h2>
+<table>
+  <tr><th>ID</th><th>From spec · Did · Reason</th></tr>
+  <tr><td>X-001</td><td>Wanted agent-style answers; shipped retrieval-first cited matches; no model secret or binding required for deploy.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>regex/readability-lite extraction</code> over <code>full parser dependency</code>. Smaller diff.</td></tr>
+  <tr><td>T-002</td><td><code>FTS only</code> over <code>embeddings on day 1</code>. Good enough for MVP.</td></tr>
+  <tr><td>T-003</td><td><code>default workers.dev deploy</code> over <code>custom domain setup</code>. Zero extra infrastructure.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · Deploy to default <code>workers.dev</code> hostname. If wrong: add custom domain later.</li>
+  <li>A-002 · External page fetches are allowed from the Worker. If wrong: require manual paste text or a proxy later.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert by deleting the Worker and D1 database; schema is additive and isolated to this app.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Add embeddings or Vectorize only after FTS quality proves insufficient.</li>
+  <li>L-002 · Add auth before storing anything sensitive or exposing beyond personal use.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Worker serves the UI and API locally.</li>
+  <li>D1 migration runs locally and remotely.</li>
+  <li>User can save, search, edit, refresh, and chat over links.</li>
+  <li><code>npm run typecheck</code>, <code>npm run test</code>, and <code>npm run build</code> pass.</li>
+  <li>Worker deploy completes with a reachable URL.</li>
+  <li>Remote smoke passed for <code>/api/health</code>, create, and delete on <code>https://links.anishthite.workers.dev</code>.</li>
+</ul>
+
+</body>
+</html>

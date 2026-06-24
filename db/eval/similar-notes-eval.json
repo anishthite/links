@@ -1,0 +1,338 @@
+{
+  "source": "local",
+  "corpusSize": 2402,
+  "goldenSize": 50,
+  "currentLiveMethod": "chargram",
+  "strictBenchmark": {
+    "description": "gold queries vs gold candidate pool; relevance = shared accepted golden tags",
+    "queries": 49,
+    "winner": "embedding_hybrid",
+    "methods": [
+      {
+        "method": "embedding_hybrid",
+        "queries": 49,
+        "recallAt10": 0.4198,
+        "mrrAt10": 0.801,
+        "hitAt1": 0.6939,
+        "hitAt3": 0.9184,
+        "meanRelevant": 16.7755,
+        "failures": [
+          {
+            "uuid": "X7UF6NwZRavuv59ti5v6wa",
+            "relevantTotal": 1,
+            "top10": [
+              "wBbeMqmwB7aay5FBa4LdMn",
+              "4vs98NNX6txZ3RDnQipcEC",
+              "jgMy7skKkpHR5x7CAsx2N7",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "9nXeD7P2i9iZDtkNTGXiA4",
+              "5hNJEJV5yR3HyZyY7dK5RU",
+              "i29nLCoc4LfLurVC43McMR",
+              "aPxE97CQThQ7a5skBF7qbm",
+              "9rH91J2iRdTzi7JoVwiXKW",
+              "Pxuckyc9XdK8VhFAEfzbKj"
+            ]
+          },
+          {
+            "uuid": "aGekPRKM6rBBz3KM5Cs5eB",
+            "relevantTotal": 2,
+            "top10": [
+              "iLUoJhZhQrwjqh688jxvtj",
+              "9rH91J2iRdTzi7JoVwiXKW",
+              "aPxE97CQThQ7a5skBF7qbm",
+              "qkRBogUCAqVKsb4kPXc73v",
+              "bJbhZJbYSfKujRHVyDRVZD",
+              "SrkxmwXdPSbqFMYXGQWoTq",
+              "C5EKq4Fq3W2jMYq5CVR9Lo",
+              "5hNJEJV5yR3HyZyY7dK5RU",
+              "pM5yQ2R4QGXodzkbJwMmcL",
+              "8mpXatHLXk32NmkZozPRX3"
+            ]
+          },
+          {
+            "uuid": "LhiN3gtUBo5VurHxafY5qp",
+            "relevantTotal": 1,
+            "top10": [
+              "ieUQXeWGs1MdQ1PTn2m4SJ",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "srx5QAiqmPziebKnoqJCz5",
+              "PWxkDFUUduygzA4dK37ygR",
+              "8FdEQhGJrDvebK4H6LMSu6",
+              "3iqFyToAW2NH588xzARSSg",
+              "jgMy7skKkpHR5x7CAsx2N7",
+              "SrkxmwXdPSbqFMYXGQWoTq",
+              "CxwsabUgN5mutCi8GKirK9",
+              "4vs98NNX6txZ3RDnQipcEC"
+            ]
+          }
+        ]
+      },
+      {
+        "method": "embedding_cosine",
+        "queries": 49,
+        "recallAt10": 0.3535,
+        "mrrAt10": 0.7515,
+        "hitAt1": 0.6531,
+        "hitAt3": 0.8571,
+        "meanRelevant": 16.7755,
+        "failures": [
+          {
+            "uuid": "X7UF6NwZRavuv59ti5v6wa",
+            "relevantTotal": 1,
+            "top10": [
+              "wBbeMqmwB7aay5FBa4LdMn",
+              "jgMy7skKkpHR5x7CAsx2N7",
+              "4vs98NNX6txZ3RDnQipcEC",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "9nXeD7P2i9iZDtkNTGXiA4",
+              "5hNJEJV5yR3HyZyY7dK5RU",
+              "i29nLCoc4LfLurVC43McMR",
+              "aPxE97CQThQ7a5skBF7qbm",
+              "9rH91J2iRdTzi7JoVwiXKW",
+              "Pxuckyc9XdK8VhFAEfzbKj"
+            ]
+          },
+          {
+            "uuid": "dz3FN4wuf84BNCMxCBvkLA",
+            "relevantTotal": 6,
+            "top10": [
+              "pM5yQ2R4QGXodzkbJwMmcL",
+              "Pxuckyc9XdK8VhFAEfzbKj",
+              "bJbhZJbYSfKujRHVyDRVZD",
+              "QMjgqXEgrEdgYe4sbkVtbt",
+              "xi8GARonBwFMswuVGuTGX6",
+              "qkRBogUCAqVKsb4kPXc73v",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "koSvRZg7RjjuwLGAKjX64T",
+              "4vs98NNX6txZ3RDnQipcEC",
+              "wbNUq24iEKksuxwUS2Z83j"
+            ]
+          },
+          {
+            "uuid": "aGekPRKM6rBBz3KM5Cs5eB",
+            "relevantTotal": 2,
+            "top10": [
+              "9rH91J2iRdTzi7JoVwiXKW",
+              "aPxE97CQThQ7a5skBF7qbm",
+              "qkRBogUCAqVKsb4kPXc73v",
+              "iLUoJhZhQrwjqh688jxvtj",
+              "bJbhZJbYSfKujRHVyDRVZD",
+              "SrkxmwXdPSbqFMYXGQWoTq",
+              "C5EKq4Fq3W2jMYq5CVR9Lo",
+              "5hNJEJV5yR3HyZyY7dK5RU",
+              "pM5yQ2R4QGXodzkbJwMmcL",
+              "8mpXatHLXk32NmkZozPRX3"
+            ]
+          },
+          {
+            "uuid": "LhiN3gtUBo5VurHxafY5qp",
+            "relevantTotal": 1,
+            "top10": [
+              "ieUQXeWGs1MdQ1PTn2m4SJ",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "srx5QAiqmPziebKnoqJCz5",
+              "PWxkDFUUduygzA4dK37ygR",
+              "8FdEQhGJrDvebK4H6LMSu6",
+              "3iqFyToAW2NH588xzARSSg",
+              "jgMy7skKkpHR5x7CAsx2N7",
+              "SrkxmwXdPSbqFMYXGQWoTq",
+              "CxwsabUgN5mutCi8GKirK9",
+              "4vs98NNX6txZ3RDnQipcEC"
+            ]
+          },
+          {
+            "uuid": "oRhMRJvE1DasX9FjuQxMzb",
+            "relevantTotal": 6,
+            "top10": [
+              "xi8GARonBwFMswuVGuTGX6",
+              "5hNJEJV5yR3HyZyY7dK5RU",
+              "mjZNzVf9DkePL9qNniXgXs",
+              "N8RJBr28TxGNhea8NCWKKJ",
+              "i29nLCoc4LfLurVC43McMR",
+              "qkRBogUCAqVKsb4kPXc73v",
+              "8mpXatHLXk32NmkZozPRX3",
+              "Pxuckyc9XdK8VhFAEfzbKj",
+              "bJbhZJbYSfKujRHVyDRVZD",
+              "KDb94TaknMcG3iPsiqfkWu"
+            ]
+          }
+        ]
+      },
+      {
+        "method": "chargram",
+        "queries": 49,
+        "recallAt10": 0.399,
+        "mrrAt10": 0.7445,
+        "hitAt1": 0.6327,
+        "hitAt3": 0.8367,
+        "meanRelevant": 16.7755,
+        "failures": []
+      },
+      {
+        "method": "hybrid_rrf",
+        "queries": 49,
+        "recallAt10": 0.4348,
+        "mrrAt10": 0.7425,
+        "hitAt1": 0.5918,
+        "hitAt3": 0.8776,
+        "meanRelevant": 16.7755,
+        "failures": []
+      },
+      {
+        "method": "hybrid_weighted",
+        "queries": 49,
+        "recallAt10": 0.434,
+        "mrrAt10": 0.7306,
+        "hitAt1": 0.5714,
+        "hitAt3": 0.8776,
+        "meanRelevant": 16.7755,
+        "failures": []
+      },
+      {
+        "method": "overlap",
+        "queries": 49,
+        "recallAt10": 0.2665,
+        "mrrAt10": 0.5655,
+        "hitAt1": 0.4898,
+        "hitAt3": 0.6122,
+        "meanRelevant": 16.7755,
+        "failures": [
+          {
+            "uuid": "X7UF6NwZRavuv59ti5v6wa",
+            "relevantTotal": 1,
+            "top10": [
+              "4vs98NNX6txZ3RDnQipcEC",
+              "wBbeMqmwB7aay5FBa4LdMn"
+            ]
+          },
+          {
+            "uuid": "KDb94TaknMcG3iPsiqfkWu",
+            "relevantTotal": 26,
+            "top10": []
+          },
+          {
+            "uuid": "8FdEQhGJrDvebK4H6LMSu6",
+            "relevantTotal": 27,
+            "top10": [
+              "AWgmJMKiAnoQFU27AbFdqR"
+            ]
+          },
+          {
+            "uuid": "PWxkDFUUduygzA4dK37ygR",
+            "relevantTotal": 26,
+            "top10": []
+          },
+          {
+            "uuid": "aGekPRKM6rBBz3KM5Cs5eB",
+            "relevantTotal": 2,
+            "top10": [
+              "iLUoJhZhQrwjqh688jxvtj"
+            ]
+          }
+        ]
+      },
+      {
+        "method": "bm25",
+        "queries": 49,
+        "recallAt10": 0.2686,
+        "mrrAt10": 0.533,
+        "hitAt1": 0.4082,
+        "hitAt3": 0.6531,
+        "meanRelevant": 16.7755,
+        "failures": [
+          {
+            "uuid": "X7UF6NwZRavuv59ti5v6wa",
+            "relevantTotal": 1,
+            "top10": [
+              "wBbeMqmwB7aay5FBa4LdMn",
+              "4vs98NNX6txZ3RDnQipcEC"
+            ]
+          },
+          {
+            "uuid": "KDb94TaknMcG3iPsiqfkWu",
+            "relevantTotal": 26,
+            "top10": []
+          },
+          {
+            "uuid": "8FdEQhGJrDvebK4H6LMSu6",
+            "relevantTotal": 27,
+            "top10": [
+              "AWgmJMKiAnoQFU27AbFdqR"
+            ]
+          },
+          {
+            "uuid": "PWxkDFUUduygzA4dK37ygR",
+            "relevantTotal": 26,
+            "top10": []
+          },
+          {
+            "uuid": "aGekPRKM6rBBz3KM5Cs5eB",
+            "relevantTotal": 2,
+            "top10": [
+              "iLUoJhZhQrwjqh688jxvtj"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "proxyBenchmark": {
+    "description": "gold queries vs full corpus; relevance = overlap between golden query tags and stored note.tags",
+    "queries": 50,
+    "winner": "overlap",
+    "methods": [
+      {
+        "method": "overlap",
+        "queries": 50,
+        "recallAt10": 0.0407,
+        "mrrAt10": 1,
+        "hitAt1": 1,
+        "hitAt3": 1,
+        "meanRelevant": 541.2,
+        "failures": []
+      },
+      {
+        "method": "hybrid_weighted",
+        "queries": 50,
+        "recallAt10": 0.0382,
+        "mrrAt10": 0.98,
+        "hitAt1": 0.96,
+        "hitAt3": 1,
+        "meanRelevant": 541.2,
+        "failures": []
+      },
+      {
+        "method": "hybrid_rrf",
+        "queries": 50,
+        "recallAt10": 0.0391,
+        "mrrAt10": 0.95,
+        "hitAt1": 0.9,
+        "hitAt3": 1,
+        "meanRelevant": 541.2,
+        "failures": []
+      },
+      {
+        "method": "chargram",
+        "queries": 50,
+        "recallAt10": 0.0386,
+        "mrrAt10": 0.95,
+        "hitAt1": 0.9,
+        "hitAt3": 1,
+        "meanRelevant": 541.2,
+        "failures": []
+      },
+      {
+        "method": "bm25",
+        "queries": 50,
+        "recallAt10": 0.029,
+        "mrrAt10": 0.93,
+        "hitAt1": 0.88,
+        "hitAt3": 1,
+        "meanRelevant": 541.2,
+        "failures": []
+      }
+    ]
+  },
+  "recommendedLiveMethod": "chargram",
+  "recommendationBasis": "strict gold-peer benchmark"
+}

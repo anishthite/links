@@ -1,0 +1,170 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>01 · Corkboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Patrick+Hand&family=Inter:wght@500&display=swap" rel="stylesheet">
+<style>
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    min-height: 100vh;
+    font-family: 'Patrick Hand', 'Marker Felt', system-ui, sans-serif;
+    color: #1a1410;
+    /* Cork: warm tan base + speckled darker dots + lighter dots, layered tiles */
+    background-color: #c2956b;
+    background-image:
+      radial-gradient(circle at 13% 30%, #876140 0px, transparent 2.5px),
+      radial-gradient(circle at 38% 67%, #6e4d31 0px, transparent 2px),
+      radial-gradient(circle at 71% 22%, #a37a52 0px, transparent 3px),
+      radial-gradient(circle at 24% 81%, #7d5938 0px, transparent 2.5px),
+      radial-gradient(circle at 88% 49%, #d4a981 0px, transparent 3px),
+      radial-gradient(circle at 55% 13%, #946a45 0px, transparent 2px),
+      radial-gradient(circle at 92% 88%, #6b4b30 0px, transparent 2.5px),
+      radial-gradient(circle at 5% 56%, #b08866 0px, transparent 2px),
+      radial-gradient(circle at 47% 41%, #d8ad84 0px, transparent 2px),
+      radial-gradient(circle at 17% 11%, #5e3f28 0px, transparent 1.5px),
+      radial-gradient(circle at 80% 70%, #a07449 0px, transparent 2.5px),
+      radial-gradient(circle at 33% 50%, #c79976 0px, transparent 1.5px);
+    background-size: 180px 180px;
+  }
+  /* Soft vignette so edges feel "framed" */
+  body::after {
+    content: ''; position: fixed; inset: 0; pointer-events: none;
+    background: radial-gradient(ellipse at 50% 40%, transparent 50%, rgba(60,38,20,0.35) 100%);
+    z-index: 1;
+  }
+  /* Theme nav */
+  .theme-nav {
+    position: fixed; top: 12px; left: 50%; transform: translateX(-50%);
+    z-index: 1000; padding: 8px 14px; background: rgba(255,255,255,0.88);
+    backdrop-filter: blur(8px); border-radius: 999px; display: flex; gap: 4px;
+    font-family: 'Inter', sans-serif; font-size: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+  }
+  .theme-nav a { padding: 4px 10px; border-radius: 999px; color: #555; text-decoration: none; }
+  .theme-nav a.active { background: #1a1410; color: white; }
+  .theme-nav a:hover:not(.active) { background: rgba(0,0,0,0.06); color: #000; }
+
+  /* Board area */
+  .board { position: relative; padding: 80px 32px 64px; max-width: 1240px; margin: 0 auto; }
+  .board-title { font-family: 'Inter', sans-serif; font-weight: 500; color: rgba(255,255,255,0.7); font-size: 13px; letter-spacing: 0.18em; text-transform: uppercase; text-align: center; margin: 0 0 32px; mix-blend-mode: overlay; }
+
+  /* Masonry via CSS columns (real masonry comes later via pretext) */
+  .notes { columns: 1; column-gap: 22px; }
+  @media (min-width: 720px)  { .notes { columns: 2; } }
+  @media (min-width: 1080px) { .notes { columns: 3; } }
+  @media (min-width: 1440px) { .notes { columns: 4; } }
+
+  .sticky {
+    break-inside: avoid;
+    display: block;
+    position: relative;
+    padding: 26px 22px 18px;
+    margin: 0 0 22px;
+    border-radius: 2px;
+    font-size: 20px;
+    line-height: 1.45;
+    color: #2a1f17;
+    box-shadow:
+      0 1px 1px rgba(0,0,0,0.10),
+      0 10px 22px -10px rgba(0,0,0,0.30),
+      inset 0 14px 14px -14px rgba(0,0,0,0.08);
+    transition: transform .18s ease, box-shadow .18s ease;
+    cursor: pointer;
+  }
+  .sticky:hover {
+    transform: translateY(-3px) rotate(0deg) !important;
+    box-shadow:
+      0 2px 2px rgba(0,0,0,0.10),
+      0 18px 32px -12px rgba(0,0,0,0.36),
+      inset 0 14px 14px -14px rgba(0,0,0,0.08);
+    z-index: 10;
+  }
+  .sticky::before { /* tape strip */
+    content: ''; position: absolute; top: -10px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+    width: 78px; height: 18px; background: rgba(245,235,200,0.55); border: 1px solid rgba(0,0,0,0.04);
+    border-radius: 1px; box-shadow: 0 1px 2px rgba(0,0,0,0.08);
+  }
+  .sticky .time { display: block; margin-top: 12px; font-family: 'Inter', sans-serif; font-size: 11px; font-weight: 500; color: rgba(0,0,0,0.35); letter-spacing: 0.02em; }
+
+  /* Paper colors + rotations are deterministic per uuid below */
+  .c-yellow { background: #fef3a2; }
+  .c-pink   { background: #ffd6e0; }
+  .c-blue   { background: #c7e9fb; }
+  .c-mint   { background: #d6f5d6; }
+  .c-peach  { background: #ffe0b2; }
+  .c-lavender { background: #e5d4ff; }
+
+  /* Variation: push-pin notes (no tape) — used on a couple */
+  .sticky.pin::before {
+    width: 14px; height: 14px; top: 6px; left: 50%; transform: translateX(-50%);
+    background: radial-gradient(circle at 30% 30%, #e85959, #8a1c1c 70%, #5a0e0e);
+    border: none; border-radius: 999px;
+    box-shadow: 0 2px 3px rgba(0,0,0,0.45), inset -1px -1px 2px rgba(0,0,0,0.4), inset 2px 2px 2px rgba(255,255,255,0.4);
+  }
+</style>
+</head>
+<body>
+
+<nav class="theme-nav">
+  <a href="index.html">all</a>
+  <a class="active" href="01-corkboard.html">01 cork</a>
+  <a href="02-swiss.html">02 swiss</a>
+  <a href="02a-inline.html">02a</a>
+  <a href="02b-chips.html">02b</a>
+  <a href="02b-bg.html">02b-BG</a>
+  <a href="02c-sidebar.html">02c</a>
+  <a href="02d-grouped.html">02d</a>
+  <a href="02e-pills.html">02e</a>
+  <a href="02e-bg.html">02e-BG ★</a>
+  <a href="04-brutalist.html">04 brutal</a>
+  <a href="side/02f-nerv.html">side: 02f</a>
+  <a href="side/03-nerv.html">side: 03</a>
+  <a href="side/03b-nerv-light.html">side: 03b</a>
+
+</nav>
+
+<main class="board">
+  <p class="board-title">01 · corkboard</p>
+  <div class="notes" id="notes"></div>
+</main>
+
+<script>
+  const PALETTE = ['c-yellow', 'c-pink', 'c-blue', 'c-mint', 'c-peach', 'c-lavender'];
+  const NOTES = [
+    { uuid: 'a1', text: 'buy bok choy', updated: '2026-05-22T18:04:00Z' },
+    { uuid: 'b2', text: 'idea sticky note board with masonry layout via pretext', updated: '2026-05-22T15:31:00Z' },
+    { uuid: 'c3', text: 'the difference between vision and hallucination is whether other people can see it too', updated: '2026-05-21T22:11:00Z' },
+    { uuid: 'd4', text: 'todo ssh into the new box, set up tailscale, install zellij', updated: '2026-05-21T09:47:00Z' },
+    { uuid: 'e5', text: 'todays lesson — pretext is a library not a framework. you render with whatever.', updated: '2026-05-20T16:22:00Z' },
+    { uuid: 'f6', text: 'jamie birthday march 14', updated: '2026-05-19T11:00:00Z' },
+    { uuid: 'g7', text: 'the way to import 40 thousand art hoes to SF to teach engineers love and thus save humankind would be to open an elite fashion school. considering the materials science infrastructure this is actually the obvious path forward for fashion.', updated: '2026-05-18T03:14:00Z' },
+    { uuid: 'h8', text: 'every infra choice is a bet on who you will be in two years', updated: '2026-05-17T08:00:00Z' },
+  ];
+  function hash(s) { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); }
+  function ago(iso) {
+    const d = new Date(iso); const now = new Date(); const diff = (now - d) / 1000;
+    if (diff < 3600) return `${Math.floor(diff/60)}m ago`;
+    if (diff < 86400) return `${Math.floor(diff/3600)}h ago`;
+    return `${Math.floor(diff/86400)}d ago`;
+  }
+  const el = document.getElementById('notes');
+  for (const n of NOTES) {
+    const h = hash(n.uuid);
+    const color = PALETTE[h % PALETTE.length];
+    const rot = ((h * 17) % 61 - 30) / 10; // -3..+3
+    const pin = (h % 4 === 0);
+    const div = document.createElement('div');
+    div.className = `sticky ${color}` + (pin ? ' pin' : '');
+    div.style.transform = `rotate(${rot}deg)`;
+    div.textContent = n.text;
+    const time = document.createElement('span'); time.className = 'time'; time.textContent = ago(n.updated);
+    div.appendChild(time);
+    el.appendChild(div);
+  }
+</script>
+</body>
+</html>

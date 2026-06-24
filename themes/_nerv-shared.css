@@ -1,0 +1,80 @@
+/* Shared base for NERV-flavored masthead studies (n1–n4).
+ * Dark palette, amber+cyan accents, subtle CRT atmosphere.
+ * NO cosplay text: no MAGI, no UPTIME, no SYNC OK, no OPERATOR.
+ * Each variation file owns its own .masthead / .write / .search rules. */
+
+:root {
+  --void:#05040A; --deep:#0A0810; --base:#100D16; --surface:#17131E; --raised:#1F1A28;
+  --a300:#FFB347; --a400:#F59B2D; --a500:#E8873D; --a700:#B45D1F; --a800:#8C4716;
+  --c300:#3CFFD0; --c400:#0CC0B8; --c700:#066058;
+  --g300:#50FF10;
+  --r400:#C80010;
+  --n300:#A89484; --n400:#887468; --n500:#685850; --n600:#4C403A;
+  --text:#E0D8CC; --text-2:var(--n400); --text-3:var(--n600);
+  --rule:rgba(245,155,45,0.08);
+  --rule-2:rgba(245,155,45,0.20);
+  --display:'Saira Extra Condensed','Barlow Condensed',sans-serif;
+  --sans:'IBM Plex Sans',system-ui,sans-serif;
+  --mono:'JetBrains Mono','SF Mono',monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--void);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+/* CRT atmosphere — dialed down from full evangelion cosplay. */
+.scanlines{position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(0,0,0,0.025) 3px,rgba(0,0,0,0.025) 4px)}
+.vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(5,4,10,0.40) 100%)}
+
+.theme-nav{position:fixed;top:10px;right:10px;z-index:10000;padding:4px 6px;background:var(--deep);border:1px solid var(--rule-2);display:flex;gap:1px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;letter-spacing:.06em}
+.theme-nav a{padding:3px 7px;color:var(--text-2);text-decoration:none;text-transform:uppercase}
+.theme-nav a.active{background:var(--a800);color:var(--a300)}
+.theme-nav a:hover:not(.active){color:var(--a300)}
+
+.board{padding:32px 32px 64px;max-width:1240px;margin:0 auto}
+
+/* Inputs — shared base. Variations tweak placement, not the look. */
+.input-base{
+  width:100%;border:none;background:transparent;outline:none;
+  font-family:var(--sans);font-size:17px;font-weight:300;line-height:1.4;
+  color:var(--text);padding:0;
+}
+.input-base::placeholder{color:var(--text-3)}
+
+/* Filter pills — small, mono, square, single-line scrollable.
+ * No big "FILTER" label — the pills already self-identify. */
+.pills{
+  display:flex;gap:4px;align-items:center;margin:0 0 24px;
+  flex-wrap:nowrap;overflow-x:auto;
+  scrollbar-width:none;-ms-overflow-style:none;
+  padding-bottom:2px;
+}
+.pills::-webkit-scrollbar{display:none}
+.pills .label{display:none}   /* JS still emits it; we hide it */
+.pill{flex:none;
+
+  font-family:var(--mono);font-size:10px;text-transform:lowercase;letter-spacing:.02em;
+  padding:2px 7px;border:1px solid var(--rule-2);background:transparent;
+  color:var(--text-2);cursor:pointer;transition:all .12s;border-radius:2px;font-weight:400;
+}
+.pill:hover{color:var(--a300);border-color:var(--a700)}
+.pill.active{background:var(--a800);border-color:var(--a700);color:var(--a300)}
+.pill .n{margin-left:4px;opacity:.55;font-size:9px}
+.pill.all{border-style:dashed;color:var(--text-3)}
+.pill.all.active{background:var(--surface);border-color:var(--text-2);color:var(--text)}
+.pill.clear{color:var(--c400);border-color:var(--c700);margin-left:auto}
+
+/* Notes — typography, not consoles. Hairline rule between, no card frame. */
+.notes{columns:1;column-gap:36px}
+@media(min-width:880px){.notes{columns:2;column-gap:36px}}
+@media(min-width:1280px){.notes{columns:3;column-gap:32px}}
+
+.note{break-inside:avoid;padding:18px 0;border-top:1px solid var(--rule-2);cursor:pointer;transition:border-color .15s}
+.note:first-child{border-top:1px solid var(--a700)}
+.note:hover{border-top-color:var(--a400)}
+.note .text{font-family:var(--sans);font-size:16px;font-weight:400;line-height:1.5;color:var(--text);margin:0 0 8px;max-width:60ch}
+.note .caption{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3);display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.note .caption .dot{color:var(--n500);opacity:.7}
+.note .caption .tag-mini{color:var(--text-2)}
+.note .caption .tag-mini.matched{color:var(--a300);text-decoration:underline;text-decoration-color:var(--a700);text-decoration-thickness:1px;text-underline-offset:3px}
+
+footer.bottom{margin-top:64px;padding-top:14px;border-top:1px solid var(--rule-2);display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3)}

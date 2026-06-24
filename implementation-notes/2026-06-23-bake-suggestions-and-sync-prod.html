@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — bake-suggestions-and-sync-prod</title>
+<meta name="task" content="Auto-accept all tag suggestions, sync local D1 to production, and deploy code.">
+<meta name="date-started" content="2026-06-23">
+<meta name="date-updated" content="2026-06-23">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="high">
+<meta name="tags" content="links,d1,prod,tags,deploy">
+<meta name="related" content="2026-06-23-link-autotagger-service.html,2026-06-23-local-links-seed-and-autotag.html,2026-06-23-cloudflare-deploy-links.html">
+<style>body{font:14px/1.45 -apple-system,system-ui,sans-serif;max-width:880px;margin:1.5rem auto;padding:0 1rem;color:#111}h1{font-size:20px;margin:0 0 .25rem}h2{font-size:15px;margin:1.4rem 0 .4rem;border-bottom:1px solid #ddd;padding-bottom:.2rem}table{border-collapse:collapse;width:100%;margin:.4rem 0 .8rem}th,td{border:1px solid #ddd;padding:4px 8px;text-align:left;vertical-align:top}th{background:#f6f6f6;font-weight:600}code{background:#f1f1f1;padding:1px 4px;border-radius:3px;font-size:12.5px}.meta{color:#555;font-size:12.5px;margin-bottom:.8rem}.kv{display:grid;grid-template-columns:140px 1fr;gap:2px 14px;font-size:13px;margin:.4rem 0 1rem}.kv b{color:#444;font-weight:600}.blast-high{color:#b00020;font-weight:600}</style>
+</head>
+<body>
+<h1>Bake suggestions, sync local corpus to production, and deploy</h1>
+<p class="meta"><code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-23 · status <b>shipped</b> · blast <span class="blast-high">high</span></p>
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Accept all pending local tag suggestions, make production match the local D1 corpus, and leave the deployed Worker on the latest code.</div>
+  <b>Surface</b><div>Local D1 writes, remote D1 overwrite, production Worker deploy.</div>
+  <b>Schema</b><div>No schema change; data overwrite only.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>db/backups/*</code></td><td>new</td><td>Store remote and local SQL exports before and during the sync.</td></tr>
+  <tr><td><code>db/backups/2026-06-23-prod-sync.sql</code></td><td>new</td><td>Delete production note-derived tables and reload the baked local corpus.</td></tr>
+  <tr><td><code>implementation-notes/INDEX.html</code></td><td>touch</td><td>Add this production data sync record.</td></tr>
+</table>
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Auto-accept every pending suggestion before sync. User explicitly approved baking all suggestions into final tags.</td></tr>
+  <tr><td>D-002</td><td>Export the current remote D1 first. Forward-only data overwrite needs a rollback artifact.</td></tr>
+  <tr><td>D-003</td><td>Make production notes match local. Simpler than row-wise merge for a fresh corpus.</td></tr>
+  <tr><td>D-004</td><td>Sync note-derived tables only. Avoid copying local auth/agent metadata into production.</td></tr>
+</table>
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-high">high</span>. Revert by restoring the remote backup export into D1 and redeploying if needed.</p>
+<h2>Definition of done</h2>
+<ul>
+  <li>Local pending suggestions count reaches <code>0</code>.</li>
+  <li>Remote D1 matches the local corpus shape and counts: <code>456</code> notes exported after sync.</li>
+  <li>Production URL <code>https://links.anishthite.workers.dev</code> is still reachable after the sync.</li>
+</ul>
+</body>
+</html>

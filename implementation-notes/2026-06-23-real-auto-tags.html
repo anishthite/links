@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — real-auto-tags</title>
+<meta name="task" content="Make link auto-tagging write real tags instead of pending suggestions.">
+<meta name="date-started" content="2026-06-23">
+<meta name="date-updated" content="2026-06-23">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,tags,cron,autotag">
+<meta name="related" content="2026-06-23-link-autotagger-service.html,2026-06-23-local-links-seed-and-autotag.html">
+<style>body{font:14px/1.45 -apple-system,system-ui,sans-serif;max-width:880px;margin:1.5rem auto;padding:0 1rem;color:#111}h1{font-size:20px;margin:0 0 .25rem}h2{font-size:15px;margin:1.4rem 0 .4rem;border-bottom:1px solid #ddd;padding-bottom:.2rem}table{border-collapse:collapse;width:100%;margin:.4rem 0 .8rem}th,td{border:1px solid #ddd;padding:4px 8px;text-align:left;vertical-align:top}th{background:#f6f6f6;font-weight:600}code{background:#f1f1f1;padding:1px 4px;border-radius:3px;font-size:12px}.meta{color:#555;margin:.1rem 0 1rem}.kv{display:grid;grid-template-columns:130px 1fr;gap:4px 10px}.blast-med{color:#b85c00}.blast-low{color:#2a7a2a}.status-in-progress{color:#b85c00}.status-shipped{color:#2a7a2a}</style>
+</head>
+<body>
+<h1>Write auto-tags as real tags</h1>
+<p class="meta"><code>no-git</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-23 · status <b class="status-shipped">shipped</b> · blast <span class="blast-med">medium</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Make cron/local link auto-tagging persist directly to <code>notes.tags</code>.</div>
+  <b>Surface</b><div><code>server/lib/auto-tag.ts</code>, local runner counts, tests, stale comments.</div>
+  <b>Schema</b><div>No migration; reuse <code>notes.tags</code>, mark any old blocker rows in <code>tag_suggestions</code> applied.</div>
+  <b>Data impact</b><div>Future auto-tags stop creating pending suggestions; old pending blockers can be converted by the next sweep.</div>
+  <b>Eval</b><div><code>npm test -- tests/link-tag-service.test.ts</code> and <code>npm run typecheck</code> pass.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>server/lib/auto-tag.ts</code></td><td>touch</td><td>Write every normalized prediction to <code>notes.tags</code>; stop inserting suggestion rows.</td></tr>
+  <tr><td><code>scripts/run-link-autotagger.ts</code></td><td>touch</td><td>Count empty-tag links as processable even when stale suggestions exist.</td></tr>
+  <tr><td><code>tests/link-tag-service.test.ts</code></td><td>touch</td><td>Lock direct-tag writes and stale-suggestion clearing.</td></tr>
+  <tr><td><code>src/lib/types.ts</code></td><td>touch</td><td>Update pending-suggestion docs for legacy/imported rows.</td></tr>
+  <tr><td><code>server/routes/notes.ts</code></td><td>touch</td><td>Update pending-suggestion route comments.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Apply all valid auto-tag predictions directly. The user asked for real tags, not review suggestions.</td></tr>
+  <tr><td>D-002</td><td>Keep <code>tag_suggestions</code> for existing UI flows. Deleting the table is unnecessary blast.</td></tr>
+  <tr><td>D-003</td><td>Mark same-uuid suggestion rows applied after direct tagging. Prevents ghost pills on already-tagged notes.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected</th><th>Reason</th></tr>
+  <tr><td>T-001</td><td>Direct apply all confidences over skipping low confidence</td><td>Skipping without a new state would reselect the same row forever.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert <code>server/lib/auto-tag.ts</code> and the tests to restore medium/low pending suggestions; data already written to <code>notes.tags</code> stays real until manually edited.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Auto-tagger creates no new <code>tag_suggestions</code> rows.</li>
+  <li>Medium-confidence predictions become <code>notes.tags</code>.</li>
+  <li>Existing pending rows for tagged notes get <code>applied_at</code>.</li>
+  <li><code>npm test -- tests/link-tag-service.test.ts</code> passes.</li>
+</ul>
+</body>
+</html>

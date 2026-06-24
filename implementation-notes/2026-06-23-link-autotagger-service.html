@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — link-autotagger-service</title>
+<meta name="task" content="Turn link tagging into a reusable service for the cron autotagger.">
+<meta name="date-started" content="2026-06-23">
+<meta name="date-updated" content="2026-06-23">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,tags,cron,service">
+<meta name="related" content="2026-06-22-links-board-parity.html,2026-06-22-links-mvp.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+  .blast-med { color: #b85c00; }
+</style>
+</head>
+<body>
+<h1>Turn link tagging into a cron service</h1>
+<p class="meta"><code>no-git</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-23 · status <b>shipped</b> · blast <span class="blast-med">medium</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Replace board’s old note taxonomy with a link-specific tagging service that the existing hourly cron can call.</div>
+  <b>Source</b><div><code>notes.source_*</code> metadata plus stored note text.</div>
+  <b>Surface</b><div><code>server/lib/auto-tag.ts</code>, new link-tag service module, existing Worker <code>scheduled()</code> path, pending suggestion UI.</div>
+  <b>Schema</b><div>Reuse <code>notes.tags</code> and <code>tag_suggestions</code>; no migration.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>server/lib/link-tag-service.ts</code></td><td>new</td><td>Own the link taxonomy, prompt, heuristics, and classification helpers.</td></tr>
+  <tr><td><code>server/lib/auto-tag.ts</code></td><td>touch</td><td>Call the new service; auto-apply high confidence, store medium/low as suggestions, and preserve the legacy <code>coverageBoostTags</code> helper export for existing tests.</td></tr>
+  <tr><td><code>tests/link-tag-service.test.ts</code></td><td>new</td><td>Lock topic tagging rules and cron write behavior.</td></tr>
+  <tr><td><code>implementation-notes/INDEX.html</code></td><td>touch</td><td>Add this task.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Keep tags topic-only. Source kind and workflow state stay out of <code>notes.tags</code>.</td></tr>
+  <tr><td>D-002</td><td>Reuse the existing cron hook and suggestion table. Smallest diff; no new scheduler or schema.</td></tr>
+  <tr><td>D-003</td><td>Cap output at 2 tags with one primary. Keeps the taxonomy tight and the UI readable.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>closed topic set</code> over <code>open-ended tags</code>. Cron output stays stable.</td></tr>
+  <tr><td>T-002</td><td><code>high=apply, med/low=suggest</code> over <code>apply everything</code>. Safer while the taxonomy settles.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert by restoring <code>server/lib/auto-tag.ts</code>; data impact is limited to tag writes and pending suggestion rows.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Hourly cron still calls one function.</li>
+  <li>Link notes are classified against a small closed topic taxonomy.</li>
+  <li>High-confidence tags apply directly; weaker guesses land as pending suggestions.</li>
+  <li>Tests cover the service and cron write path.</li>
+</ul>
+</body>
+</html>

@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>n4 · nerv strip</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Saira+Extra+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_nerv-shared.css">
+<style>
+  /* N4 — Strip: status-bar style, EVERYTHING in one row
+   * The whole header collapses into a tmux-style status strip across the top:
+   *   [NOTES 2397] | ▶ write here…                           | ⌕ search  | filter ▾
+   * Pills slide out below only when "filter ▾" is clicked. Most aggressive
+   * footprint reduction in the set. Header ≈ 40px tall total.            */
+
+  .board { padding-top: 0 }
+
+  /* Theme-nav lives over the strip on this variation only — push it down
+   * a row so it doesn't overlap the strip's controls. */
+  .theme-nav { top: 56px }
+
+  .strip {
+    display: grid;
+    grid-template-columns: auto 1fr auto auto;
+    align-items: center;
+    gap: 0;
+    background: var(--deep);
+    border-bottom: 1px solid var(--a700);
+    margin: 0 -32px 24px;
+    padding: 0 16px;
+    position: sticky; top: 0; z-index: 5;
+    height: 44px;
+  }
+  .strip .ident {
+    font-family: var(--display);
+    font-size: 18px; font-weight: 700;
+    text-transform: uppercase; letter-spacing: .06em;
+    color: var(--a400);
+    padding-right: 14px;
+    border-right: 1px solid var(--rule-2);
+  }
+  .strip .ident .n {
+    font-family: var(--mono); font-size: 11px; font-weight: 400;
+    color: var(--text-3); margin-left: 8px; letter-spacing: .04em;
+    font-variant-numeric: tabular-nums;
+  }
+  .strip .write {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 0 14px;
+    border-right: 1px solid var(--rule-2);
+    min-width: 0;
+  }
+  .strip .write .field { flex: 1; min-width: 0 }
+  .strip .write .prompt { color: var(--a400); font-family: var(--mono); font-size: 13px; line-height: 1 }
+  .strip .write textarea, .strip .write input {
+    border: none; background: transparent; outline: none; resize: none;
+    font-family: var(--sans); font-size: 14px; font-weight: 400;
+    color: var(--text); padding: 0; min-height: 1.4em; min-width: 0;
+  }
+  .strip .write textarea { width: 100%; height: 22px; line-height: 1.4 }
+  .strip .write textarea::placeholder, .strip .write input::placeholder { color: var(--text-3); font-style: italic }
+
+  .strip .field { flex: 1; min-width: 0 }
+  .strip .field-spacer { flex: 1 }
+
+  .strip .search {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 0 14px;
+    width: 240px;
+    border-right: 1px solid var(--rule-2);
+  }
+  .strip .search .icon { color: var(--c400); font-size: 12px; line-height: 1 }
+  .strip .search input {
+    flex: 1; min-width: 0;
+    font-size: 13px; font-weight: 400; font-style: normal;
+  }
+  .strip .search .count {
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    letter-spacing: .04em; font-variant-numeric: tabular-nums; white-space: nowrap;
+  }
+  .strip .search .count .n { color: var(--c300) }
+
+  .strip .filter-toggle {
+    padding: 0 14px;
+    font-family: var(--mono); font-size: 10px; letter-spacing: .10em;
+    text-transform: uppercase; color: var(--text-2);
+    background: transparent; border: none; cursor: pointer; height: 100%;
+    transition: color .12s;
+  }
+  .strip .filter-toggle:hover { color: var(--a300) }
+  .strip .filter-toggle.open { color: var(--a300) }
+  .strip .filter-toggle .caret { display: inline-block; margin-left: 6px; transition: transform .15s }
+  .strip .filter-toggle.open .caret { transform: rotate(180deg) }
+  .strip .filter-toggle .badge {
+    color: var(--text-3); margin-left: 6px; font-size: 9px;
+  }
+  .strip .filter-toggle.has-active .badge { color: var(--a300) }
+
+  /* Drawer for pills */
+  .pills-drawer {
+    overflow: hidden;
+    max-height: 0;
+    transition: max-height .2s ease;
+    border-bottom: 1px solid transparent;
+    margin: -24px -32px 24px;
+    padding: 0 32px;
+  }
+  .pills-drawer.open {
+    max-height: 200px;
+    border-bottom-color: var(--rule);
+    padding-top: 12px;
+    padding-bottom: 12px;
+  }
+  .pills-drawer .pills { margin: 0 }
+
+  .strip .hint {
+    padding: 0 14px;
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    letter-spacing: .08em; text-transform: uppercase;
+  }
+  .strip .hint kbd { color: var(--a300); padding: 0 3px; border: 1px solid var(--rule-2); font-size: 9px; margin: 0 1px }
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ live</a>
+  <a href="n1-nerv-compact.html">n1 compact</a>
+  <a href="n2-nerv-split.html">n2 split</a>
+  <a href="n3-nerv-mode.html">n3 mode</a>
+  <a class="active" href="n4-nerv-strip.html">n4 strip</a>
+</nav>
+
+<main class="board">
+  <div class="strip">
+    <div class="ident">Notes<span class="n" data-count>2,397</span></div>
+
+    <div class="write">
+      <span class="prompt">▶</span>
+      <div class="field"><textarea placeholder="write a note…" rows="1"></textarea></div>
+      <span class="hint"><kbd>⌘↵</kbd></span>
+    </div>
+
+    <div class="search">
+      <span class="icon">⌕</span>
+      <input type="text" id="search" placeholder="search…">
+      <span class="count"><span class="n" id="count">8</span>/<span data-count>2,397</span></span>
+    </div>
+
+    <button class="filter-toggle" id="filter-toggle" type="button">
+      filter<span class="badge" id="filter-badge">14</span><span class="caret">▾</span>
+    </button>
+  </div>
+
+  <div class="pills-drawer" id="pills-drawer">
+    <div class="pills" id="pills"></div>
+  </div>
+
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>n4 · nerv strip</span><span>one row · ~44px · filter as drawer</span></footer>
+</main>
+<script src="_shared.js"></script>
+<script>
+  // Filter drawer toggle
+  const toggle = document.getElementById('filter-toggle');
+  const drawer = document.getElementById('pills-drawer');
+  toggle.addEventListener('click', () => {
+    toggle.classList.toggle('open');
+    drawer.classList.toggle('open');
+  });
+  // Mark toggle as "has-active" when any pill is selected
+  const observer = new MutationObserver(() => {
+    const anyActive = document.querySelectorAll('.pill.active:not(.all)').length > 0;
+    toggle.classList.toggle('has-active', anyActive);
+  });
+  observer.observe(document.getElementById('pills'), { childList: true, subtree: true, attributes: true });
+</script>
+</body>
+</html>

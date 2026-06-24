@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!-- B: Single sticky note pinned to a cork-toned board with the brand red as the pin head.
+       Tells you what the app is at a glance, even at 32px. -->
+  <defs>
+    <linearGradient id="corkB" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#C9A876"/>
+      <stop offset="100%" stop-color="#9E7F58"/>
+    </linearGradient>
+    <radialGradient id="pinHeadB" cx="0.35" cy="0.32" r="0.7">
+      <stop offset="0%" stop-color="#FF5566"/>
+      <stop offset="55%" stop-color="#D81B2E"/>
+      <stop offset="100%" stop-color="#8A0A1A"/>
+    </radialGradient>
+    <filter id="noteShadowB" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="14"/>
+      <feOffset dx="0" dy="14"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.32"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="pinShadowB" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur in="SourceAlpha" stdDeviation="8"/>
+      <feOffset dx="0" dy="6"/>
+      <feComponentTransfer><feFuncA type="linear" slope="0.45"/></feComponentTransfer>
+      <feMerge><feMergeNode/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Cork background -->
+  <rect width="1024" height="1024" rx="225" ry="225" fill="url(#corkB)"/>
+  <!-- subtle cork specks -->
+  <g fill="#7A5E3A" opacity="0.25">
+    <circle cx="140" cy="200" r="3"/><circle cx="900" cy="160" r="4"/>
+    <circle cx="220" cy="820" r="3"/><circle cx="860" cy="880" r="3"/>
+    <circle cx="500" cy="120" r="2"/><circle cx="120" cy="500" r="2"/>
+    <circle cx="930" cy="540" r="3"/><circle cx="380" cy="950" r="2"/>
+  </g>
+
+  <!-- Sticky note, slight tilt -->
+  <g transform="translate(512 560) rotate(-4)" filter="url(#noteShadowB)">
+    <rect x="-300" y="-300" width="600" height="600" rx="14" fill="#FBF7EF"/>
+    <line x1="-230" y1="-110" x2="230" y2="-110" stroke="#D9C9A6" stroke-width="7" stroke-linecap="round"/>
+    <line x1="-230" y1="0"    x2="200" y2="0"    stroke="#D9C9A6" stroke-width="7" stroke-linecap="round"/>
+    <line x1="-230" y1="110"  x2="230" y2="110"  stroke="#D9C9A6" stroke-width="7" stroke-linecap="round"/>
+    <line x1="-230" y1="220"  x2="130" y2="220"  stroke="#D9C9A6" stroke-width="7" stroke-linecap="round"/>
+  </g>
+
+  <!-- Red pushpin head -->
+  <g transform="translate(512 230)" filter="url(#pinShadowB)">
+    <circle cx="0" cy="0" r="64" fill="url(#pinHeadB)"/>
+    <ellipse cx="-20" cy="-22" rx="20" ry="12" fill="#FFB8C0" opacity="0.7"/>
+  </g>
+</svg>

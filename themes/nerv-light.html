@@ -1,0 +1,517 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>nerv · light — engineering paper edition</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  /* ─── Light NERV ──────────────────────────────────────────────────────
+   * Cream paper. Walnut ink. Rust hairlines. Amber on activation.
+   * Same skeleton as dark NERV; everything inverted with warmth.
+   * Reference points: Braun calculator manuals, Tom Sachs studio docs,
+   * Apollo flight manuals. NOT: typewriter notes, Cracker Barrel menu,
+   * vintage Instagram filter.
+   * ───────────────────────────────────────────────────────────────────── */
+
+  :root {
+    /* Paper + ink */
+    --paper:        #FAF8F3;   /* warm cream — not stone-50 (too cold) */
+    --paper-2:      #F4F1EA;   /* a half-tone lower for empty states */
+    --surface:      #FFFFFF;   /* crisp white for inputs/panels on cream */
+    --ink:          #241A12;   /* deep walnut, NOT plain black */
+    --ink-2:        #4B3A2D;
+    --ink-3:        #78635A;   /* warm taupe — the muted text color */
+    --ink-4:        #A89484;   /* even more muted */
+
+    /* Hairlines */
+    --rust:         #B45D1F;   /* the rust hue, full saturation */
+    --rust-15:      rgba(180,93,31,0.15);  /* idle hairlines */
+    --rust-25:      rgba(180,93,31,0.25);
+    --shadow-warm:  0 2px 8px rgba(140,71,22,0.08);
+
+    /* Accents */
+    --amber:        #F59B2D;   /* active/focus accent. NEVER soften. */
+    --amber-tint:   #FCE4C3;   /* hovers, light fills */
+    --teal:         #0F766E;   /* match-count cyan (already in tag system) */
+
+    --sans:         'IBM Plex Sans', system-ui, sans-serif;
+    --mono:         'JetBrains Mono', 'SF Mono', monospace;
+  }
+  * { box-sizing: border-box }
+  html, body { margin: 0; padding: 0 }
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.55;
+    font-weight: 400;
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
+    /* Very subtle paper grain. ~1% noise. Remove this line for flat cream. */
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.14, 0 0 0 0 0.10, 0 0 0 0 0.07, 0 0 0 0.025 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  /* Theme-nav (top-right) — matches the existing convention */
+  .theme-nav {
+    position: fixed; top: 12px; right: 12px; z-index: 100;
+    display: flex; gap: 1px; flex-wrap: wrap;
+    background: var(--surface);
+    border: 1px solid var(--rust-25);
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .06em;
+  }
+  .theme-nav a {
+    padding: 5px 10px;
+    color: var(--ink-3);
+    text-decoration: none;
+    text-transform: uppercase;
+  }
+  .theme-nav a.active {
+    background: var(--amber);
+    color: var(--paper);
+  }
+  .theme-nav a:hover:not(.active) { color: var(--rust); }
+
+  .board {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 32px 48px 96px;
+  }
+
+  /* ─── Header: D-029 pattern in light-NERV skin ─── */
+
+  .header { margin: 0 0 28px; }
+  .header-row {
+    display: flex;
+    align-items: stretch;
+    gap: 8px;
+    height: 44px;
+  }
+
+  /* Search box — primary surface, white on cream */
+  .searchbox {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 14px;
+    background: var(--surface);
+    border: 1px solid var(--rust-15);
+    border-radius: 2px;                       /* SHARP — 2px structural */
+    transition: border-color .12s, box-shadow .12s;
+  }
+  .searchbox:focus-within {
+    /* Hairline crisps up — the affordance is the change in crispness,
+       not a thicker border or glow. Pure Dieter Rams move. */
+    border-color: var(--rust);
+    box-shadow: var(--shadow-warm);
+  }
+  .searchbox::before {
+    /* Magnifying glass — amber, NOT replaced with a chevron. Affordance > vibe. */
+    content: '';
+    width: 14px; height: 14px;
+    background: var(--amber);
+    -webkit-mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='7' cy='7' r='5' fill='none' stroke='black' stroke-width='1.5'/><path d='M11 11l3 3' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/></svg>") center / contain no-repeat;
+            mask: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'><circle cx='7' cy='7' r='5' fill='none' stroke='black' stroke-width='1.5'/><path d='M11 11l3 3' stroke='black' stroke-width='1.5' stroke-linecap='round' fill='none'/></svg>") center / contain no-repeat;
+    flex: none;
+  }
+  .searchbox input {
+    flex: 1; min-width: 0;
+    border: none; background: transparent; outline: none;
+    font-family: var(--sans);
+    font-size: 15px; font-weight: 400;
+    color: var(--ink);
+    padding: 0; height: 100%;
+  }
+  .searchbox input::placeholder { color: var(--ink-4); }
+  .searchbox input::-webkit-search-cancel-button { display: none }
+
+  /* Two-color count readout — the "instrument" move */
+  .searchbox-count {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--ink-3);
+    white-space: nowrap;
+    font-variant-numeric: tabular-nums;
+  }
+  .searchbox-count .matched { color: var(--teal); font-weight: 600; }
+  .searchbox-count:empty { display: none }
+
+  /* Icon buttons — sharp, hairline, fill on activate */
+  .iconbtn {
+    position: relative;
+    flex: none;
+    width: 44px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--surface);
+    border: 1px solid var(--rust-15);
+    border-radius: 2px;
+    color: var(--ink-2);
+    cursor: pointer;
+    transition: all .12s;
+    padding: 0;
+  }
+  .iconbtn:hover { border-color: var(--rust); color: var(--rust); }
+  .iconbtn:active { transform: translateY(1px); }
+  .iconbtn.active {
+    /* Reserved move: amber fill + cream icon. The ONLY place amber gets
+       used as a fill. Tells you "this is actively engaged." */
+    background: var(--amber);
+    border-color: var(--amber);
+    color: var(--paper);
+  }
+
+  /* Filter badge: sharp amber square, NOT a red circle */
+  .iconbtn-badge {
+    position: absolute;
+    top: -5px; right: -5px;
+    min-width: 14px; height: 14px;
+    padding: 0 3px;
+    background: var(--amber);
+    color: var(--paper);
+    border-radius: 1px;                       /* sharper than the buttons themselves */
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 600;
+    line-height: 14px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  .iconbtn-badge:empty { display: none }
+
+  /* Write panel — opens below header on + */
+  .write-panel {
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--rust-15);
+    border-top: 1px solid var(--amber);       /* the amber "active surface" rule */
+    border-radius: 2px;
+    padding: 14px 16px 10px;
+    box-shadow: var(--shadow-warm);
+  }
+  .write-panel textarea {
+    width: 100%;
+    border: none; background: transparent; outline: none; resize: none;
+    font-family: var(--sans);
+    font-size: 17px; font-weight: 400; line-height: 1.5;
+    color: var(--ink);
+    padding: 0; min-height: 1.5em;
+    overflow: hidden;
+  }
+  .write-panel textarea::placeholder { color: var(--ink-4); }
+  .write-panel .panel-foot {
+    margin-top: 10px;
+    display: flex; align-items: center; justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    letter-spacing: .08em;
+    text-transform: lowercase;
+    color: var(--ink-3);
+  }
+  .write-panel .panel-hint kbd {
+    font-family: var(--mono);
+    padding: 1px 4px;
+    border: 1px solid var(--rust-25);
+    border-bottom-width: 2px;
+    border-radius: 1px;
+    font-size: 9px;
+    color: var(--ink-2);
+    background: var(--paper);
+    margin: 0 1px;
+  }
+  .write-panel .panel-status { color: var(--amber); opacity: 0; transition: opacity .18s; font-weight: 600; }
+  .write-panel .panel-status.show { opacity: 1; }
+
+  /* Filter panel */
+  .filter-panel {
+    margin-top: 12px;
+    background: var(--surface);
+    border: 1px solid var(--rust-15);
+    border-top: 1px solid var(--amber);
+    border-radius: 2px;
+    padding: 10px 12px;
+    box-shadow: var(--shadow-warm);
+  }
+
+  /* Pills — single-line scrollable, sharp 2px, mono lowercase */
+  .pills {
+    display: flex; gap: 5px;
+    align-items: center;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    scrollbar-width: none; -ms-overflow-style: none;
+  }
+  .pills::-webkit-scrollbar { display: none }
+  .pills .label { display: none }              /* JS emits "Filter" — hide it */
+  .pill {
+    flex: none;
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: lowercase;
+    letter-spacing: .03em;
+    padding: 4px 9px;
+    border: 1px solid var(--c, var(--rust-25));
+    background: transparent;
+    color: var(--c, var(--ink-3));
+    cursor: pointer;
+    transition: all .12s;
+    border-radius: 2px;                       /* sharp pills too */
+    font-weight: 500;
+    white-space: nowrap;
+  }
+  .pill:hover { background: var(--c, var(--paper-2)); color: var(--c, var(--ink)); }
+  .pill.active {
+    background: var(--c, var(--ink));
+    border-color: var(--c, var(--ink));
+    color: var(--paper);
+    font-weight: 600;
+  }
+  .pill .n { margin-left: 5px; opacity: 0.65; font-size: 9px; font-variant-numeric: tabular-nums; }
+  .pill.all { border-style: dashed; color: var(--ink-3); border-color: var(--rust-25); }
+  .pill.all.active { background: var(--ink); color: var(--paper); border-color: var(--ink); }
+  .pill.clear {
+    /* swiss-red is GONE — unify on amber */
+    color: var(--amber);
+    border-color: var(--amber);
+    margin-left: 4px;
+  }
+  .pill.clear:hover { background: var(--amber); color: var(--paper); }
+
+  /* ─── Notes (unchanged structure, light-NERV-compatible) ─── */
+  .notes {
+    columns: 1;
+    column-gap: 24px;
+  }
+  @media (min-width: 720px)  { .notes { columns: 2; column-gap: 22px } }
+  @media (min-width: 1080px) { .notes { columns: 3; column-gap: 22px } }
+  @media (min-width: 1440px) { .notes { columns: 4; column-gap: 22px } }
+
+  .note {
+    /* Pastel tag backgrounds PRESERVED — they were calibrated for cream. */
+    break-inside: avoid;
+    margin: 0 0 22px;
+    padding: 18px 20px 14px;
+    background: var(--c, var(--paper-2));
+    border-radius: 2px;                       /* sharper than the original 6px */
+    cursor: pointer;
+    transition: transform .12s ease, box-shadow .12s ease;
+  }
+  .note:hover {
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-warm);
+  }
+  .note .text {
+    font-size: 17px;
+    font-weight: 400;
+    line-height: 1.5;
+    color: var(--ink);
+    margin: 0;
+    max-width: 60ch;
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+  .note .caption {
+    margin-top: 12px;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .10em;
+    color: var(--ink-3);
+    display: flex; align-items: center; gap: 8px;
+    flex-wrap: wrap;
+  }
+  .note .caption .dot { color: var(--ink-4); opacity: .6; }
+  .note .caption .tag-mini { color: var(--ink-3); font-weight: 500; }
+  .note .caption .tag-mini.matched {
+    color: var(--rust);
+    text-decoration: underline;
+    text-decoration-color: var(--amber);
+    text-decoration-thickness: 1px;
+    text-underline-offset: 3px;
+  }
+
+  /* Footer — single line, mono caps in muted */
+  footer.bottom {
+    margin-top: 96px;
+    padding-top: 14px;
+    border-top: 1px solid var(--rust-15);
+    display: flex;
+    justify-content: space-between;
+    font-family: var(--mono);
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .10em;
+    color: var(--ink-4);
+  }
+</style>
+</head>
+<body>
+
+<nav class="theme-nav">
+  <a href="index.html">all</a>
+  <a href="02e-bg.html">★ chosen</a>
+  <a class="active" href="nerv-light.html">nerv · light</a>
+</nav>
+
+<main class="board">
+
+  <header class="header">
+    <div class="header-row">
+      <label class="searchbox">
+        <input type="search" id="search" placeholder="search notes…" autocomplete="off">
+        <span class="searchbox-count" data-searchbox-count></span>
+      </label>
+      <button class="iconbtn" data-add aria-label="add note" title="add note (⌘N)" type="button">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path d="M8 2v12M2 8h12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="iconbtn" data-filter aria-label="toggle filter" title="filter (F)" type="button">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path d="M2 4h12M4 8h8M6 12h4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+        <span class="iconbtn-badge" data-filter-badge></span>
+      </button>
+    </div>
+
+    <section class="write-panel" data-write hidden>
+      <textarea placeholder="write a note…" rows="1" aria-label="write a new note"></textarea>
+      <div class="panel-foot">
+        <span class="panel-hint"><kbd>⌘</kbd><kbd>↵</kbd> save · <kbd>esc</kbd> cancel</span>
+        <span class="panel-status" data-write-status></span>
+      </div>
+    </section>
+
+    <section class="filter-panel" data-filter-panel hidden>
+      <div class="pills" id="pills"></div>
+    </section>
+  </header>
+
+  <!-- _shared.js writes the visible-match count here; we mirror it into the
+       searchbox readout via MutationObserver in the inline script below. -->
+  <span id="count" hidden></span>
+
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom">
+    <span>nerv · light</span>
+    <span>cream paper · rust hairlines · amber on engage</span>
+  </footer>
+
+</main>
+
+<!-- Sample data + filter/pills/search logic shared across theme variations -->
+<script src="_shared.js"></script>
+
+<script>
+  // ─── Header popover state ───
+  // The shared.js provides: filter pills wired to #pills, search filter via #search,
+  // and CORPUS_TOTAL constant. We layer popover-open state + write panel on top.
+
+  const addBtn = document.querySelector('[data-add]');
+  const filterBtn = document.querySelector('[data-filter]');
+  const writePanel = document.querySelector('[data-write]');
+  const filterPanel = document.querySelector('[data-filter-panel]');
+  const writeTA = writePanel.querySelector('textarea');
+  const writeStatus = writePanel.querySelector('[data-write-status]');
+  const searchInput = document.getElementById('search');
+  const searchCount = document.querySelector('[data-searchbox-count]');
+  const filterBadge = document.querySelector('[data-filter-badge]');
+
+  function openWrite()  { writePanel.hidden = false; addBtn.classList.add('active'); writeTA.focus(); growTA(); }
+  function closeWrite() { writePanel.hidden = true;  addBtn.classList.remove('active'); }
+  function toggleWrite(){ writePanel.hidden ? openWrite() : closeWrite(); }
+  function openFilter() { filterPanel.hidden = false; filterBtn.classList.add('active'); }
+  function closeFilter(){ filterPanel.hidden = true;  filterBtn.classList.remove('active'); }
+  function toggleFilter(){ filterPanel.hidden ? openFilter() : closeFilter(); }
+
+  addBtn.addEventListener('click', toggleWrite);
+  filterBtn.addEventListener('click', toggleFilter);
+
+  // Textarea autogrow
+  function growTA() {
+    writeTA.style.height = 'auto';
+    writeTA.style.height = writeTA.scrollHeight + 'px';
+  }
+  writeTA.addEventListener('input', growTA);
+
+  // Save (fake — theme has no backend, just flash status + clear)
+  writeTA.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+      e.preventDefault();
+      const txt = writeTA.value.trim();
+      if (!txt) return;
+      writeStatus.textContent = 'saved (sample)';
+      writeStatus.classList.add('show');
+      setTimeout(() => writeStatus.classList.remove('show'), 900);
+      writeTA.value = '';
+      growTA();
+      closeWrite();
+    } else if (e.key === 'Escape') {
+      e.preventDefault();
+      closeWrite();
+    }
+  });
+
+  // ─── Bridge _shared.js's count widget into the searchbox count slot ───
+  // _shared.js writes the matched count into #count (already in the markup).
+  // We mirror it into the two-color readout inside the searchbox.
+
+  const hiddenCount = document.getElementById('count');
+
+  // Observe changes to the hidden count, reflect into the searchbox readout.
+  // Only show the readout when filtering (search query OR active pills).
+  function updateSearchCount() {
+    const matched = parseInt(hiddenCount.textContent, 10);
+    const total = (typeof CORPUS_TOTAL !== 'undefined') ? CORPUS_TOTAL : 8;
+    const searchActive = searchInput.value.trim().length > 0;
+    const filterActive = document.querySelectorAll('#pills .pill.active:not(.all)').length > 0;
+    if (!searchActive && !filterActive) {
+      searchCount.textContent = '';
+      return;
+    }
+    searchCount.innerHTML = `<span class="matched">${matched.toLocaleString()}</span> / ${total.toLocaleString()}`;
+  }
+  new MutationObserver(updateSearchCount).observe(hiddenCount, { childList: true, characterData: true, subtree: true });
+  searchInput.addEventListener('input', () => setTimeout(updateSearchCount, 180));
+  document.getElementById('pills').addEventListener('click', () => setTimeout(updateSearchCount, 50));
+
+  // Filter badge — count active non-"all" pills, reflect into the amber square
+  function updateFilterBadge() {
+    const n = document.querySelectorAll('#pills .pill.active:not(.all)').length;
+    filterBadge.textContent = n > 0 ? String(n) : '';
+  }
+  new MutationObserver(updateFilterBadge).observe(document.getElementById('pills'), { childList: true, subtree: true, attributes: true });
+
+  // ─── Global keybindings: same vocabulary as production header ───
+  document.addEventListener('keydown', e => {
+    const mod = e.metaKey || e.ctrlKey;
+    const ae = document.activeElement;
+    const inField = ae && (ae.tagName === 'INPUT' || ae.tagName === 'TEXTAREA' || ae.isContentEditable);
+    if (mod && e.key.toLowerCase() === 'n')        { e.preventDefault(); openWrite(); }
+    else if (mod && e.key.toLowerCase() === 'f')   { e.preventDefault(); searchInput.focus(); searchInput.select(); }
+    else if (e.key === '/' && !inField)            { e.preventDefault(); searchInput.focus(); }
+    else if (e.key === 'f' && !inField)            { e.preventDefault(); toggleFilter(); }
+    else if (e.key === 'Escape') {
+      if (!writePanel.hidden) return closeWrite();
+      if (!filterPanel.hidden) return closeFilter();
+      if (ae === searchInput) {
+        if (searchInput.value) { searchInput.value = ''; searchInput.dispatchEvent(new Event('input', { bubbles: true })); }
+        else searchInput.blur();
+      }
+    }
+  });
+
+  // Initial sweep
+  updateSearchCount();
+  updateFilterBadge();
+</script>
+</body>
+</html>

@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>02d · Swiss · grouped by tag</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--stone-50:#fafaf9;--stone-100:#f5f5f4;--stone-200:#e7e5e4;--stone-300:#d6d3d1;--stone-400:#a8a29e;--stone-500:#78716c;--stone-700:#44403c;--stone-900:#1c1917;--swiss-red:#C8102E;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:var(--stone-50);color:var(--stone-900);font-family:var(--sans);font-size:16px;line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  .theme-nav{position:fixed;top:24px;right:24px;z-index:100;display:flex;font-family:var(--mono);font-size:11px;background:var(--stone-50);border:1px solid var(--stone-200)}
+  .theme-nav a{padding:6px 12px;color:var(--stone-500);text-decoration:none;text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--stone-200)}
+  .theme-nav a:last-child{border-right:none}
+  .theme-nav a.active{background:var(--stone-900);color:var(--stone-50)}
+  .theme-nav a:hover:not(.active){color:var(--stone-900)}
+
+  .board{max-width:1320px;margin:0 auto;padding:64px 48px 96px}
+  .masthead{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;padding-bottom:48px}
+  .display{font-size:clamp(48px,7vw,80px);font-weight:300;line-height:.95;letter-spacing:-.04em;margin:0}
+  .display .accent{color:var(--swiss-red)}
+  .meta-line{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .meta-line .v{color:var(--stone-900)}
+
+  .write{margin:0 0 48px;border-top:1px solid var(--stone-900);border-bottom:1px solid var(--stone-200);padding:24px 0}
+  .write textarea{width:100%;max-width:60ch;border:none;background:transparent;outline:none;resize:none;font-family:var(--sans);font-size:22px;font-weight:300;line-height:1.4;color:var(--stone-900);padding:0;min-height:1.4em}
+  .write textarea::placeholder{color:var(--stone-300)}
+  .write .hint{margin-top:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-400)}
+  .write .hint kbd{font-family:var(--mono);padding:1px 5px;border:1px solid var(--stone-300);border-radius:2px;font-size:10px;color:var(--stone-700)}
+
+  .search{margin:0 0 64px;border-bottom:1px solid var(--stone-300);padding-bottom:10px;display:flex;align-items:baseline;gap:16px}
+  .search .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:20px;font-weight:300;color:var(--stone-900);padding:0}
+  .search input::placeholder{color:var(--stone-300)}
+  .search .count{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);white-space:nowrap}
+  .search .count .n{color:var(--stone-900)}
+
+  /* Tag groups */
+  .group{margin:0 0 72px;display:grid;grid-template-columns:repeat(12,1fr);gap:24px}
+  .group .head{grid-column:1/4;padding-top:8px;position:sticky;top:24px;align-self:start}
+  .group .head h2{margin:0;font-size:48px;font-weight:300;letter-spacing:-.03em;line-height:.95;color:var(--c, var(--stone-900))}
+  .group .head h2 .dot{color:var(--c, var(--swiss-red))}
+  .group .head .count{margin-top:6px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .group .head .count .v{color:var(--c, var(--swiss-red));font-weight:500}
+  .group .head .rule{margin-top:14px;height:3px;background:var(--c, var(--stone-900));max-width:48px}
+
+  .group .col{grid-column:4/13}
+  .group .note{padding:20px 0;border-top:1px solid var(--stone-200);cursor:pointer;transition:border-color .15s}
+  .group .note:first-child{border-top:2px solid var(--c, var(--stone-900))}
+  .group .note:hover{border-top-color:var(--c, var(--swiss-red))}
+  .group .note .caption .other-tags em{color:var(--c)}
+  .group .note .text{font-size:17px;line-height:1.5;color:var(--stone-900);margin:0;max-width:60ch}
+  .group .note .caption{margin-top:10px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);display:flex;gap:10px}
+  .group .note .caption .other-tags{color:var(--stone-400)}
+
+  .empty{padding:48px 0;color:var(--stone-400);font-style:italic}
+
+  footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--stone-900);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+</style>
+</head>
+<body>
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="01-corkboard.html">01 CORK</a>
+  <a href="02-swiss.html">02 SWISS</a>
+  <a href="02a-inline.html">02a</a>
+  <a href="02b-chips.html">02b</a>
+  <a href="02b-bg.html">02b-BG</a>
+  <a href="02c-sidebar.html">02c</a>
+  <a class="active" href="02d-grouped.html">02d</a>
+  <a href="02e-pills.html">02e</a>
+  <a href="02e-bg.html">02e-BG ★</a>
+  <a href="side/02f-nerv.html">side: 02f</a>
+  <a href="side/03-nerv.html">side: 03</a>
+  <a href="side/03b-nerv-light.html">side: 03b</a>
+  <a href="04-brutalist.html">04 BRUTAL</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1 class="display">Notes<span class="accent">.</span></h1>
+    <span class="meta-line"><span class="v">1,776</span> entries · 2026</span>
+  </header>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> save</div>
+  </section>
+
+  <div class="search">
+    <span class="label">Find</span>
+    <input type="text" id="search" placeholder="search across all groups">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div id="groups"></div>
+
+  <footer><span>02d · grouped by tag</span><span>notes shown under each of their tags · scroll to browse</span></footer>
+</main>
+
+<script>
+  const NOTES = [
+    { uuid:'a1', text:'buy bok choy', updated:'2026-05-22T18:04:00Z', tags:['todo','shop'] },
+    { uuid:'b2', text:'idea: sticky note board with masonry layout via pretext', updated:'2026-05-22T15:31:00Z', tags:['idea','board'] },
+    { uuid:'c3', text:'the difference between vision and hallucination is whether other people can see it too', updated:'2026-05-21T22:11:00Z', tags:['thought'] },
+    { uuid:'d4', text:'todo: ssh into the new box, set up tailscale, install zellij', updated:'2026-05-21T09:47:00Z', tags:['todo','infra'] },
+    { uuid:'e5', text:"today's lesson — pretext is a library not a framework. you render with whatever.", updated:'2026-05-20T16:22:00Z', tags:['lesson'] },
+    { uuid:'f6', text:'jamie birthday march 14', updated:'2026-05-19T11:00:00Z', tags:['reminder','people'] },
+    { uuid:'g7', text:'the way to import 40 thousand art hoes to SF to teach engineers love (and thus save humankind) would be to open an elite fashion school. considering the materials science infrastructure this is actually the obvious path forward for fashion.', updated:'2026-05-18T03:14:00Z', tags:['idea','hot-take'] },
+    { uuid:'h8', text:'every infra choice is a bet on who you will be in two years', updated:'2026-05-17T08:00:00Z', tags:['thought','infra'] },
+  ];
+  const fmt = iso => { const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}.${p(d.getMonth()+1)}.${String(d.getFullYear()).slice(2)}`; };
+  const TAG_COLORS = {todo:'#C8102E',shop:'#E8704A',idea:'#003B8E',board:'#0F766E',thought:'#6E3CBC',infra:'#44403c',lesson:'#C99700',reminder:'#2D6A4F',people:'#B8336A','hot-take':'#DC2626'};
+  const tagColor = t => TAG_COLORS[t] || '#A8A29E';
+
+  function render() {
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    const filtered = q ? NOTES.filter(n => n.text.toLowerCase().includes(q)) : NOTES;
+    document.getElementById('count').textContent = filtered.length;
+
+    const byTag = {};
+    for (const n of filtered) for (const t of n.tags) (byTag[t] = byTag[t] || []).push(n);
+    const orderedTags = Object.entries(byTag).sort((a,b) => b[1].length - a[1].length || a[0].localeCompare(b[0]));
+
+    const root = document.getElementById('groups'); root.innerHTML = '';
+    if (orderedTags.length === 0) { root.innerHTML = '<div class="empty">no notes match.</div>'; return; }
+    orderedTags.forEach(([tag, notes]) => {
+      const sec = document.createElement('section'); sec.className = 'group';
+      sec.style.setProperty('--c', tagColor(tag));
+      const list = notes.map(n => {
+        const others = n.tags.filter(t => t !== tag);
+        const otherSpans = others.map(o => `<em style="color:${tagColor(o)};font-style:normal;font-weight:500">#${o}</em>`).join(' ');
+        const otherStr = others.length ? `<span class="other-tags">also ${otherSpans}</span>` : '';
+        const safe = n.text.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+        return `<article class="note"><p class="text">${safe}</p><div class="caption"><span>${fmt(n.updated)}</span>${otherStr}</div></article>`;
+      }).join('');
+      sec.innerHTML = `<div class="head"><h2>${tag}<span class="dot">.</span></h2><div class="count"><span class="v">${notes.length}</span> note${notes.length===1?'':'s'}</div><div class="rule"></div></div><div class="col">${list}</div>`;
+      root.appendChild(sec);
+    });
+  }
+  render();
+  let t; document.getElementById('search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 150); });
+</script>
+</body>
+</html>

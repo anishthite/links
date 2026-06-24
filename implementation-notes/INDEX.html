@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Implementation Notes — Index</title>
+<style>
+  body { font: 14px/1.5 -apple-system, system-ui, sans-serif; max-width: 1100px; margin: 2rem auto; padding: 0 1rem; }
+  table { border-collapse: collapse; width: 100%; }
+  th, td { border: 1px solid #ddd; padding: 6px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; position: sticky; top: 0; }
+  tr.superseded td { text-decoration: line-through; color: #888; }
+  .blast-high { color: #b00020; font-weight: 600; } .blast-med { color: #b85c00; } .blast-low { color: #2a7a2a; }
+  .status-in-progress { color: #b85c00; } .status-shipped { color: #2a7a2a; } .status-blocked { color: #b00020; }
+  a { color: #1a5fb4; text-decoration: none; } a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<h1>Implementation Notes — Index</h1>
+<p>One row per task, newest first. Never delete — superseded rows get strikethrough and a <code>[superseded by …]</code> note.</p>
+<table>
+  <thead><tr><th>Date</th><th>Task</th><th>Status</th><th>Blast</th><th>Tags</th><th>Summary</th></tr></thead>
+  <tbody>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-real-auto-tags.html">Write auto-tags as real tags</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,tags,cron,autotag</td>
+      <td>Changed the link auto-tagger to write valid predictions directly to <code>notes.tags</code> and clear stale same-note suggestions.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-youtube-transcript-backfill.html">Backfill existing YouTube transcripts</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,youtube,transcript,backfill</td>
+      <td>Sequentially backfilled the existing YouTube links, filled every previously empty YouTube content field, synced prod with one SQL file, and redeployed.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-title-only-link-cards.html">Show title-only link cards</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,ui,cards</td>
+      <td>Render board cards with just the title while preserving full-note editor click-through.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-chunked-chat-retrieval.html">Chunk chat retrieval for long link text</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,chat,retrieval,rag,chunks</td>
+      <td>Shipped chat prompts that focus on the best matching chunk from long saved extracts without adding schema or vector infrastructure.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-youtube-transcript-ingest.html">Fetch YouTube transcripts on link ingest</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,youtube,transcript,ingest</td>
+      <td>Added YouTube transcript extraction from caption tracks during link save/refresh, covered it with tests, and redeployed production.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-bake-suggestions-and-sync-prod.html">Bake suggestions, sync local corpus to production, and deploy</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-high">high</td>
+      <td>links,d1,prod,tags,deploy</td>
+      <td>Auto-accepted all local suggestions, removed the smoke note, synced the baked note corpus to production D1, and redeployed the Worker.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-cloudflare-deploy-links.html">Deploy links worker to Cloudflare</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,deploy,cloudflare,worker</td>
+      <td>Deployed the current Worker to <code>https://links.anishthite.workers.dev</code>, kept remote D1 untouched, and wired <code>origin</code> to the GitHub repo that already carries the board-style CI/CD workflow.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-local-links-seed-and-autotag.html">Seed local links DB and sweep autotagger</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,d1,local,tags</td>
+      <td>Seeded the local D1 corpus, added repeatable local autotagger commands, fixed batch starvation on pending suggestions, and verified local dev reads the same DB.</td>
+    </tr>
+    <tr>
+      <td>2026-06-23</td>
+      <td><a href="2026-06-23-link-autotagger-service.html">Turn link tagging into a cron service</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,tags,cron,service</td>
+      <td>Replaced the old note taxonomy with a link-topic tagging service that reuses the hourly cron and stores medium/low guesses as pending suggestions.</td>
+    </tr>
+    <tr>
+      <td>2026-06-22</td>
+      <td><a href="2026-06-22-links-board-parity.html">Fork board exactly, then adapt it for links</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,board-parity,d1,agent,deploy</td>
+      <td>Shipped board-parity UI/backend/agent at <code>https://links.anishthite.workers.dev</code> with link-backed notes, saved extracts, refresh, and <code>/api/links</code> aliasing.</td>
+    </tr>
+    <tr>
+      <td>2026-06-22</td>
+      <td><a href="2026-06-22-links-mvp.html">Build links MVP</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,d1,worker,deploy</td>
+      <td>Shipped the initial lightweight MVP before superseding it with the board-parity fork.</td>
+    </tr>
+  </tbody>
+</table>
+</body>
+</html>

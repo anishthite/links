@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>03b · NERV · daylight</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Saira+Extra+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  /* NERV — daylight, content-first.
+     Same MAGI character as 03; just inverted to warm parchment. */
+  :root {
+    --paper:#FBF4E0;    /* warm parchment */
+    --paper-2:#F5EBD2;
+    --rule:rgba(140,71,22,0.14);
+    --rule-2:rgba(140,71,22,0.28);
+
+    --a300:#C77417; --a400:#B45D1F; --a500:#8C4716; --a700:#5C2F0E;
+    --o400:#C44A00;
+    --c400:#066058;
+    --p400:#553A7A;
+    --g400:#2A6F21;
+    --y400:#A07A00;
+    --r400:#A00010;
+
+    --text:    #1F1812;
+    --text-2:  #685850;
+    --text-3:  #887468;
+
+    --display:'Saira Extra Condensed','Barlow Condensed',sans-serif;
+    --sans:'IBM Plex Sans',system-ui,sans-serif;
+    --mono:'JetBrains Mono','SF Mono',monospace;
+    --glow-a:0 0 20px rgba(180,93,31,0.08);
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:var(--paper);color:var(--text);font-family:var(--sans);font-size:16px;line-height:1.55;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  .scanlines{position:fixed;inset:0;z-index:9999;pointer-events:none;background:repeating-linear-gradient(0deg,transparent,transparent 3px,rgba(140,71,22,0.035) 3px,rgba(140,71,22,0.035) 4px)}
+  .vignette{position:fixed;inset:0;z-index:9998;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,transparent 55%,rgba(92,47,14,0.18) 100%)}
+
+  .theme-nav{position:fixed;top:12px;left:50%;transform:translateX(-50%);z-index:10000;padding:6px 10px;background:var(--paper-2);border:1px solid var(--rule-2);display:flex;gap:2px;flex-wrap:wrap;max-width:92vw;font-family:var(--mono);font-size:11px;box-shadow:var(--glow-a)}
+  .theme-nav a{padding:4px 10px;color:var(--text-2);text-decoration:none;text-transform:uppercase;letter-spacing:.08em}
+  .theme-nav a.active{background:var(--a400);color:var(--paper)}
+  .theme-nav a:hover:not(.active){color:var(--a400)}
+
+  .board{padding:72px 32px 64px;max-width:1180px;margin:0 auto}
+
+  .header{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:14px;border-bottom:1px solid var(--rule-2);margin-bottom:8px;gap:24px;flex-wrap:wrap}
+  .header h1{margin:0;font-family:var(--display);font-size:42px;font-weight:700;color:var(--a400);letter-spacing:.05em;text-transform:uppercase}
+  .header h1 .sub{color:var(--text-3);font-size:13px;font-family:var(--mono);margin-left:12px;letter-spacing:.06em;font-weight:400;text-transform:none}
+  .status{display:flex;gap:18px;font-size:11px;color:var(--text-2);letter-spacing:.08em;text-transform:uppercase;font-family:var(--mono)}
+  .status .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--g400);margin-right:6px;vertical-align:middle;animation:breathe 3s ease-in-out infinite}
+  @keyframes breathe{0%,100%{opacity:0.5}50%{opacity:1}}
+  @keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
+
+  .nerv-divider{height:1px;opacity:0.85;margin:0 0 36px;background:linear-gradient(90deg,transparent,var(--c400) 12%,var(--a500) 38%,var(--a400) 50%,var(--a500) 62%,var(--c400) 88%,transparent)}
+
+  .write{margin:0 0 32px;border-top:1px solid var(--rule);border-bottom:1px solid var(--rule);padding:20px 0}
+  .write textarea{width:100%;max-width:60ch;border:none;background:transparent;outline:none;resize:none;font-family:var(--sans);font-size:21px;font-weight:300;line-height:1.4;color:var(--text);padding:0;min-height:1.4em}
+  .write textarea::placeholder{color:var(--text-3)}
+  .write .hint{margin-top:10px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3)}
+  .write .hint kbd{font-family:var(--mono);padding:1px 5px;border:1px solid var(--rule-2);font-size:10px;color:var(--a400)}
+
+  .search{margin:0 0 40px;border-bottom:1px solid var(--rule-2);padding-bottom:10px;display:flex;align-items:baseline;gap:16px}
+  .search .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--a400)}
+  .search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:19px;font-weight:300;color:var(--text);padding:0}
+  .search input::placeholder{color:var(--text-3)}
+  .search .count{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-2);white-space:nowrap}
+  .search .count .n{color:var(--a400)}
+
+  .notes{columns:1;column-gap:40px}
+  @media(min-width:880px){.notes{columns:2;column-gap:40px}}
+  @media(min-width:1280px){.notes{columns:3;column-gap:36px}}
+
+  .note{break-inside:avoid;padding:22px 0;border-top:1px solid var(--rule-2);cursor:pointer;transition:border-color .15s}
+  .note:first-child{border-top:1px solid var(--a500)}
+  .note:hover{border-top-color:var(--a400)}
+  .note .ts{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3);margin:0 0 8px}
+  .note .ts .cursor{display:inline-block;width:7px;height:1em;background:var(--a400);vertical-align:text-bottom;margin-left:4px;animation:blink 1.1s step-end infinite}
+  .note .text{font-family:var(--sans);font-size:17px;font-weight:400;line-height:1.5;color:var(--text);margin:0;max-width:60ch}
+
+  footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--rule-2);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--text-3)}
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="../index.html">ALL</a>
+  <a href="../02e-bg.html">02e-BG ★</a>
+  <a href="02f-nerv.html">02f-NERV</a>
+  <a href="03-nerv.html">03 NERV</a>
+  <a class="active" href="03b-nerv-light.html">03b LIGHT</a>
+</nav>
+
+<main class="board">
+  <header class="header">
+    <h1>MAGI · NOTES<span class="sub">// terminal 7Z-A · operator: anish · DAY MODE</span></h1>
+    <div class="status"><span><span class="dot"></span>SYNC OK</span><span>8 RECORDS</span><span>UPTIME 47:13</span></div>
+  </header>
+  <div class="nerv-divider"></div>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> SAVE</div>
+  </section>
+
+  <div class="search">
+    <span class="label">FIND</span>
+    <input type="text" id="search" placeholder="search records…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="notes" id="notes"></div>
+
+  <footer><span>03b · NERV daylight · content-first</span><span>same MAGI character on parchment</span></footer>
+</main>
+
+<script>
+  const NOTES = [
+    { uuid:'a1', text:'buy bok choy', updated:'2026-05-22T18:04:00Z' },
+    { uuid:'b2', text:'idea: sticky note board with masonry layout via pretext', updated:'2026-05-22T15:31:00Z' },
+    { uuid:'c3', text:'the difference between vision and hallucination is whether other people can see it too', updated:'2026-05-21T22:11:00Z' },
+    { uuid:'d4', text:'todo: ssh into the new box, set up tailscale, install zellij', updated:'2026-05-21T09:47:00Z' },
+    { uuid:'e5', text:"today's lesson — pretext is a library not a framework. you render with whatever.", updated:'2026-05-20T16:22:00Z' },
+    { uuid:'f6', text:'jamie birthday march 14', updated:'2026-05-19T11:00:00Z' },
+    { uuid:'g7', text:'the way to import 40 thousand art hoes to SF to teach engineers love (and thus save humankind) would be to open an elite fashion school. considering the materials science infrastructure this is actually the obvious path forward for fashion.', updated:'2026-05-18T03:14:00Z' },
+    { uuid:'h8', text:'every infra choice is a bet on who you will be in two years', updated:'2026-05-17T08:00:00Z' },
+  ];
+  const fmt = iso => { const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${d.getUTCFullYear()}.${p(d.getUTCMonth()+1)}.${p(d.getUTCDate())}T${p(d.getUTCHours())}:${p(d.getUTCMinutes())}`; };
+  function render(list){
+    const root=document.getElementById('notes'); root.innerHTML='';
+    list.forEach((n,i)=>{
+      const el=document.createElement('article'); el.className='note';
+      el.innerHTML=`<div class="ts">${fmt(n.updated)}${i===0?'<span class="cursor"></span>':''}</div><p class="text"></p>`;
+      el.querySelector('.text').textContent=n.text;
+      root.appendChild(el);
+    });
+    document.getElementById('count').textContent=list.length;
+  }
+  render(NOTES);
+  let t; document.getElementById('search').addEventListener('input',e=>{ clearTimeout(t); t=setTimeout(()=>{const q=e.target.value.toLowerCase().trim(); render(q?NOTES.filter(n=>n.text.toLowerCase().includes(q)):NOTES);},150); });
+</script>
+</body>
+</html>

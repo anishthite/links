@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Links.</title>
+  <meta name="description" content="Personal link board.">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <!-- Inter (body) + JetBrains Mono (chrome). Inter swapped in 2026-05-28
+       (was IBM Plex Sans). Preloaded so pretext measurement is accurate on
+       first prepare(); switching body font invalidates prior measurements
+       but document.fonts.ready in main.ts gates the first layout pass. -->
+  <link rel="preload" as="style"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap">
+
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90' font-family='Helvetica' font-weight='300'%3ELinks%3C/text%3E%3Ctspan x='75' fill='%23C8102E'%3E.%3C/tspan%3E%3C/svg%3E">
+</head>
+<body>
+  <script>
+    // Resolve theme before first paint. Persisted choice in localStorage
+    // wins; otherwise fall back to the OS preference. Sets data-theme on
+    // <html> so the CSS variable overrides in board.css apply immediately
+    // (no FOUC on dark-mode reload). Toggle handler lives in src/header.ts.
+    (function () {
+      try {
+        var saved = localStorage.getItem('theme');
+        var prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+        var theme = saved === 'dark' || saved === 'light' ? saved : (prefersDark ? 'dark' : 'light');
+        document.documentElement.setAttribute('data-theme', theme);
+      } catch (e) { /* storage blocked — default light */ }
+    })();
+  </script>
+  <div id="app"></div>
+  <script type="module" src="/src/main.ts"></script>
+</body>
+</html>

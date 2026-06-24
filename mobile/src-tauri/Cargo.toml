@@ -1,0 +1,27 @@
+[package]
+name         = "board-mobile"
+version      = "0.1.0"
+edition      = "2021"
+rust-version = "1.77.2"
+description  = "Thin iOS shell around https://board.thite.site"
+
+# Tauri 2 mobile dispatches through a shared library entry point. The lib is
+# linked into the iOS app target via cargo-mobile2; main.rs is kept so plain
+# `cargo run` still works for desktop-side sanity checks during development.
+[lib]
+name       = "board_mobile_lib"
+crate-type = ["staticlib", "cdylib", "rlib"]
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# Personal-use build. Strip + LTO for a tighter .ipa.
+[profile.release]
+codegen-units = 1
+lto           = true
+opt-level     = "s"
+panic         = "abort"
+strip         = true

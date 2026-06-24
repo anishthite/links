@@ -1,0 +1,20 @@
+[package]
+name         = "board"
+version      = "0.1.0"
+edition      = "2021"
+rust-version = "1.77.2"
+description  = "Thin desktop shell around https://board.thite.site"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+tauri = { version = "2", features = [] }
+
+# Personal-use build. Strip + LTO for a tighter .app.
+[profile.release]
+codegen-units = 1
+lto           = true
+opt-level     = "s"
+panic         = "abort"
+strip         = true

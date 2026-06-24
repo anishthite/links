@@ -1,0 +1,32 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Body bg + font. D-030: light-NERV skin.
+ * Cream paper, warm walnut ink. Subtle paper grain via SVG noise — about 1%
+ * opacity, baseline-tile pattern. Remove the `background-image` line if it
+ * makes the JS-positioned notes feel disconnected from the page. */
+html, body {
+  margin: 0;
+  padding: 0;
+  background: var(--bg, #FAF8F3);   /* warm cream paper (light) / dark walnut (dark) */
+  color: var(--ink, #241A12);       /* deep walnut / cream */
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.55;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  min-height: 100vh;
+  transition: background-color .2s ease, color .2s ease;
+}
+body {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.14, 0 0 0 0 0.10, 0 0 0 0 0.07, 0 0 0 0.025 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+/* Dark mode: invert the noise to light specks on the dark walnut field. */
+[data-theme="dark"] body {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.95, 0 0 0 0 0.90, 0 0 0 0 0.82, 0 0 0 0.018 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+}
+
+*, *::before, *::after { box-sizing: border-box; }

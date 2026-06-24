@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — local-links-seed-and-autotag</title>
+<meta name="task" content="Seed the local links DB, sweep the autotagger across it, and make the local app path clearly use that DB.">
+<meta name="date-started" content="2026-06-23">
+<meta name="date-updated" content="2026-06-23">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,d1,local,tags">
+<meta name="related" content="2026-06-23-link-autotagger-service.html,2026-06-22-links-board-parity.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+  .blast-low { color: #2a7a2a; }
+</style>
+</head>
+<body>
+<h1>Seed local links DB and sweep autotagger</h1>
+<p class="meta"><code>no-git</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-23 · status <b>shipped</b> · blast <span class="blast-low">low</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Finish local setup so the browser app reads the imported links corpus and the autotagger can be rerun without shell one-offs.</div>
+  <b>Source</b><div><code>links.txt</code> → local D1 → local Worker UI.</div>
+  <b>Surface</b><div>New manual sweep script, package scripts, README local-dev note, local D1 contents.</div>
+  <b>Schema</b><div>No schema change.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>scripts/run-link-autotagger.ts</code></td><td>new</td><td>Run the link autotagger directly against the local Wrangler D1 sqlite file; optionally sweep all batches.</td></tr>
+  <tr><td><code>package.json</code></td><td>touch</td><td>Add repeatable local autotagger scripts.</td></tr>
+  <tr><td><code>server/lib/auto-tag.ts</code></td><td>touch</td><td>Exclude already-pending rows in SQL so sweep batches do not starve on the oldest suggestions.</td></tr>
+  <tr><td><code>tests/link-tag-service.test.ts</code></td><td>touch</td><td>Lock the non-starvation sweep behavior.</td></tr>
+  <tr><td><code>README.md</code></td><td>touch</td><td>Clarify that <code>wrangler dev</code> / <code>npm run dev</code> uses the local D1 while <code>vite</code>-only falls back.</td></tr>
+  <tr><td><code>implementation-notes/INDEX.html</code></td><td>touch</td><td>Add this task.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Run local sweeps by opening Wrangler’s sqlite file directly. Smaller than teaching a new API route or relying on flaky <code>/__scheduled</code> behavior.</td></tr>
+  <tr><td>D-002</td><td>Treat “processed” as tagged-or-suggested. Medium/low suggestions intentionally remain untagged until review.</td></tr>
+  <tr><td>D-003</td><td>Document the local Worker path instead of changing frontend fallback behavior. <code>npm run dev</code> already points at the correct DB.</td></tr>
+  <tr><td>D-004</td><td>Exclude pending suggestions in the SQL query before <code>LIMIT</code>. Prevents batch starvation once the oldest rows already have suggestion records.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Revert by deleting the helper script and rerunning local D1 from a clean state.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Local D1 contains the seeded links corpus.</li>
+  <li>No unprocessed local link notes remain.</li>
+  <li>A documented command reruns the local autotagger.</li>
+  <li>Local dev is verified against the same D1 state the user will browse.</li>
+  <li>Final local state: <code>457</code> notes, <code>173</code> tagged, <code>284</code> pending suggestions, <code>0</code> unprocessed link notes.</li>
+</ul>
+</body>
+</html>

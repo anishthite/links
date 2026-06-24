@@ -1,0 +1,353 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Board · Theme Variations</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --stone-50:#fafaf9; --stone-100:#f5f5f4; --stone-200:#e7e5e4; --stone-300:#d6d3d1;
+    --stone-400:#a8a29e; --stone-500:#78716c; --stone-700:#44403c; --stone-900:#1c1917;
+    --swiss-red:#C8102E;
+    --sans:'IBM Plex Sans', system-ui, sans-serif;
+    --mono:'IBM Plex Mono', monospace;
+  }
+  *{box-sizing:border-box}html,body{margin:0;padding:0;background:var(--stone-50);color:var(--stone-900);font-family:var(--sans);-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1120px;margin:0 auto;padding:96px 48px 96px}
+
+  header{display:grid;grid-template-columns:repeat(12,1fr);gap:24px;margin-bottom:48px}
+  header .t{grid-column:1/9}
+  header .m{grid-column:9/13;align-self:end}
+  h1{font-size:clamp(56px,8vw,96px);font-weight:300;line-height:.95;letter-spacing:-.04em;margin:0}
+  h1 .accent{color:var(--swiss-red)}
+  .lede{color:var(--stone-500);font-size:17px;line-height:1.5;max-width:54ch;margin-top:16px}
+  .meta{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .meta div{display:flex;justify-content:space-between;padding:6px 0;border-top:1px solid var(--stone-200)}
+  .meta div:first-child{border-top:none;padding-top:0}
+  .meta .v{color:var(--stone-900)}
+
+  .group{margin-top:56px}
+  .group-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);padding-bottom:12px;border-bottom:1px solid var(--stone-900);margin:0 0 0}
+  .group-label .accent{color:var(--swiss-red)}
+
+  .card{display:grid;grid-template-columns:64px 1fr 110px;gap:24px;padding:24px 0;border-top:1px solid var(--stone-200);text-decoration:none;color:inherit;transition:border-color .15s;cursor:pointer}
+  .card:first-of-type{border-top:none}
+  .card:hover{border-top-color:var(--swiss-red)}
+  .card:hover + .card{border-top-color:var(--swiss-red)}
+  .card:hover .num{color:var(--swiss-red)}
+  .card .num{font-family:var(--mono);font-size:11px;letter-spacing:.08em;color:var(--stone-400);line-height:1.8;transition:color .15s}
+  .card .name{font-size:22px;font-weight:400;letter-spacing:-.015em;line-height:1.2;margin:0 0 6px}
+  .card .desc{color:var(--stone-500);font-size:14px;line-height:1.55;max-width:60ch;margin:0}
+  .card .tags{margin-top:10px;display:flex;gap:10px;flex-wrap:wrap;font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .card .tags b{color:var(--stone-900);font-weight:500}
+  .card .side{font-family:var(--mono);font-size:10px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-400);text-align:right;line-height:1.6}
+  .card .side .v{display:block;color:var(--stone-900);font-size:12px;margin-top:2px;font-weight:500;letter-spacing:-.005em;text-transform:none}
+  .card.featured .side .v{color:var(--swiss-red)}
+
+  footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--stone-900);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+
+  .palette{margin-top:48px;padding:24px 0;border-top:1px solid var(--stone-900);border-bottom:1px solid var(--stone-200)}
+  .palette-label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);margin-bottom:16px}
+  .palette-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:12px}
+  .swatch{display:flex;align-items:center;gap:10px;padding:8px 12px;border:1px solid var(--stone-200);font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.06em}
+  .swatch .chip{width:14px;height:14px;flex:none;border-radius:2px}
+  .swatch .name{color:var(--stone-900);font-weight:500}
+  .swatch .hex{color:var(--stone-400);margin-left:auto;font-size:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div class="t">
+      <h1>Theme<span class="accent">.</span></h1>
+      <p class="lede">v0 visual lock: <b style="color:var(--swiss-red)">02e-bg</b> — Swiss layout, pills filter, pastel tag backgrounds. Everything else preserved for reference.</p>
+    </div>
+    <div class="m">
+      <div class="meta">
+        <div><span>Status</span><span class="v">LOCKED</span></div>
+        <div><span>Choice</span><span class="v">02e-bg</span></div>
+        <div><span>Variants explored</span><span class="v">13</span></div>
+        <div><span>Cut</span><span class="v">polaroid · newspaper</span></div>
+      </div>
+    </div>
+  </header>
+
+  <div class="group">
+    <p class="group-label">Live skin candidate <span class="accent">— nerv minus the cosplay</span></p>
+
+    <a class="card featured" href="nerv-light.html" style="border-top:2px solid #F59B2D;padding-top:32px">
+      <div class="num" style="color:#F59B2D">NERV</div>
+      <div>
+        <h2 class="name" style="font-size:30px">Light · engineering paper</h2>
+        <p class="desc">D-029 header pattern (search + plus + filter, popovers) wearing a light-NERV skin. Warm cream paper (<code>#FAF8F3</code>), white surfaces, rust hairlines (<code>#B45D1F</code> at 15% opacity), amber on engage (<code>#F59B2D</code>), 2px corners throughout. Match-count readout in two-color mono: teal <code>#0F766E</code> matched / taupe total. Pastel tag backgrounds on notes preserved — they were always calibrated for cream paper. <em>No</em> cosplay text, <em>no</em> swiss-red, <em>no</em> condensed display type. Sharp angles + amber-on-cream + mono numerals doing what mono numerals were always meant to do.</p>
+        <div class="tags"><span><b>palette:</b> cream + walnut + amber + rust</span><span><b>corners:</b> 2px sharp</span><span><b>chrome:</b> 1 row, 44px</span><span><b>notes:</b> pastels preserved</span></div>
+      </div>
+      <div class="side" style="color:#B45D1F">test<br><span class="v" style="color:#F59B2D;font-size:14px">page</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">On the table <span class="accent">— first picks</span></p>
+
+    <a class="card featured" href="01-corkboard.html">
+      <div class="num">01</div>
+      <div>
+        <h2 class="name">Corkboard</h2>
+        <p class="desc">Real cork texture, pastel paper sticky notes, washi-tape + push-pins, ±3° deterministic rotation. Patrick Hand for the writing (legible, still feels hand-done).</p>
+        <div class="tags"><span><b>font:</b> patrick hand</span><span><b>vibe:</b> warm, physical</span></div>
+      </div>
+      <div class="side">your<br><span class="v">first pick</span></div>
+    </a>
+
+    <a class="card featured" href="02-swiss.html">
+      <div class="num">02</div>
+      <div>
+        <h2 class="name">Swiss · baseline</h2>
+        <p class="desc">Clean reference. No tags shown. No index, no relative time, no char count. Writing at top. The "what does this look like without tag UX" version — compare each variant below to this.</p>
+        <div class="tags"><span><b>font:</b> ibm plex</span><span><b>tags:</b> hidden</span></div>
+      </div>
+      <div class="side">readable<br><span class="v">your pick</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">NERV studies <span class="accent">— dark mode, less chrome</span></p>
+
+    <a class="card" href="n4-nerv-strip.html">
+      <div class="num">n4</div>
+      <div>
+        <h2 class="name">Strip</h2>
+        <p class="desc">Everything in <b>one sticky 44px row</b> across the top: <code style="font-family:var(--mono);font-size:12px">NOTES 2397 │ ▶ write a note… │ ⌨ search │ filter 14 ▾</code>. Filter pills slide down as a drawer when clicked. Total header height: <b>69px</b> (vs 345px live, <b>−80%</b>). Most aggressive reduction.</p>
+        <div class="tags"><span><b>height:</b> 69px</span><span><b>vs live:</b> −80%</span><span><b>filter:</b> drawer</span></div>
+      </div>
+      <div class="side">most<br><span class="v">aggressive</span></div>
+    </a>
+
+    <a class="card" href="n3-nerv-mode.html">
+      <div class="num">n3</div>
+      <div>
+        <h2 class="name">Mode toggle</h2>
+        <p class="desc">One input bar with <b>two modes</b>: WRITE (amber ▶, default) and SEARCH (cyan ⌨). Press <code>⌘F</code> or <code>/</code> to switch; <code>Esc</code> returns to write. The bar's leading character + accent color tell you which mode. Solves "write vs search" by making them <i>modes of one bar</i> instead of two boxes.</p>
+        <div class="tags"><span><b>height:</b> 220px</span><span><b>distinction:</b> by mode</span><span><b>risk:</b> hidden state</span></div>
+      </div>
+      <div class="side">most<br><span class="v">clever</span></div>
+    </a>
+
+    <a class="card" href="n2-nerv-split.html">
+      <div class="num">n2</div>
+      <div>
+        <h2 class="name">Split row</h2>
+        <p class="desc">Write LEFT (2/3 width, amber ▶ prompt), search RIGHT (1/3 width, cyan ⌨ icon), separated by a vertical NERV-gradient rule. Different colors = the eye can't confuse the two. Save hint moves to a tiny mono line below. Most familiar pattern; solves write/search distinction without hiding anything.</p>
+        <div class="tags"><span><b>height:</b> 224px</span><span><b>distinction:</b> by color + position</span></div>
+      </div>
+      <div class="side">most<br><span class="v">familiar</span></div>
+    </a>
+
+    <a class="card" href="n1-nerv-compact.html">
+      <div class="num">n1</div>
+      <div>
+        <h2 class="name">Compact</h2>
+        <p class="desc">Conservative NERV port: three stacked rows but each tight. Masthead = <b>NOTES 2397</b> in Saira condensed amber. Write row with amber ▶ prompt. Search row with cyan ⌨ icon (no "FIND" label). Filter pills single-line scrollable, smaller. Same rhythm as current chrome, just lower-fat.</p>
+        <div class="tags"><span><b>height:</b> 224px</span><span><b>vs live:</b> −34%</span><span><b>risk:</b> low</span></div>
+      </div>
+      <div class="side">most<br><span class="v">conservative</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">Masthead studies <span class="accent">— cleaning up the top of page</span></p>
+
+    <a class="card" href="05-editorial.html">
+      <div class="num">05</div>
+      <div>
+        <h2 class="name">Editorial</h2>
+        <p class="desc">Real newspaper front-page masthead. Serif wordmark (EB Garamond) centered between two mono columns: <b>Est. MMXII · Vol. XIV</b> on the left, <b>No. 1,733 · today's date</b> on the right. Double rule below, italic dek. Leans into the "this is a publication" narrative — 14 years of entries told as volume + issue.</p>
+        <div class="tags"><span><b>wordmark:</b> serif</span><span><b>chrome:</b> heavy print rules</span><span><b>tells:</b> 14 years</span></div>
+      </div>
+      <div class="side">most<br><span class="v">editorial</span></div>
+    </a>
+
+    <a class="card" href="06-ledger.html">
+      <div class="num">06</div>
+      <div>
+        <h2 class="name">Ledger</h2>
+        <p class="desc">The number is the headline. <b>1,733</b> set huge (140px+, weight 200, tabular) with "entries / kept since February 2012" as a small two-line label beside it. Quiet mono eyebrow above. Below: a thin 2012→May 2026 timeline rail with a swiss-red dot at "today". The count becomes the protagonist instead of the word "Notes."</p>
+        <div class="tags"><span><b>hero:</b> the number</span><span><b>span:</b> visible timeline</span><span><b>weight:</b> ultra-light</span></div>
+      </div>
+      <div class="side">most<br><span class="v">narrative</span></div>
+    </a>
+
+    <a class="card" href="07-quiet.html">
+      <div class="num">07</div>
+      <div>
+        <h2 class="name">Quiet</h2>
+        <p class="desc">Maximum restraint. <b>notes.</b> at 28px medium weight, one short sans line underneath: "1,733 entries since Feb 2012 · Thu, May 28". No mono, no caps lock, no rules, no "OPERATOR ANISH". The wall of pastel sticky notes below does all the talking. Linear / Emil Kowalski territory.</p>
+        <div class="tags"><span><b>chrome:</b> zero</span><span><b>type:</b> all sans</span><span><b>vibe:</b> linear-ish</span></div>
+      </div>
+      <div class="side">most<br><span class="v">restrained</span></div>
+    </a>
+
+    <a class="card" href="08-stamp.html">
+      <div class="num">08</div>
+      <div>
+        <h2 class="name">Stamp</h2>
+        <p class="desc">Title + lede on the left ("a log of small ideas… kept since 2012"). Right: a hand-cancelled postal-stamp block rotated −1.6° showing <b>28 / MAY / MMXXVI</b> and the entry count in swiss red. Reads as a dated artifact, not a SaaS dashboard. The stamp does the work the mono meta line used to do, but as an object instead of text.</p>
+        <div class="tags"><span><b>chrome:</b> bordered stamp</span><span><b>tells:</b> today's date, big</span><span><b>vibe:</b> postal / archival</span></div>
+      </div>
+      <div class="side">most<br><span class="v">artifact</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">v0 visual lock <span class="accent">— this is what we're building</span></p>
+
+    <a class="card featured" href="02e-bg.html" style="border-top:2px solid var(--swiss-red);padding-top:32px">
+      <div class="num" style="color:var(--swiss-red)">02e-BG</div>
+      <div>
+        <h2 class="name" style="font-size:32px">Pills + pastel bg <span style="color:var(--swiss-red);font-family:var(--mono);font-size:11px;letter-spacing:.10em;text-transform:uppercase;font-weight:500">★ chosen</span></h2>
+        <p class="desc">Swiss layout. Filter pills row below the search bar (multi-select OR). Each note's bg is the pastel of its primary tag. Pills are the loud interactive surface AND the persistent color legend; notes themselves stay calm. IBM Plex Sans + JetBrains Mono. Stone palette + swiss red accent + 10-color pastel tag system.</p>
+        <div class="tags"><span><b>layout:</b> swiss</span><span><b>filter:</b> pills, multi-select OR</span><span><b>color:</b> pastel-on-cream</span><span><b>chrome:</b> minimal</span></div>
+      </div>
+      <div class="side" style="color:var(--swiss-red)">v0<br><span class="v" style="color:var(--swiss-red);font-size:14px">LOCKED</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">Runner-up — considered, not chosen</p>
+
+    <a class="card" href="02b-bg.html">
+      <div class="num">02b-BG</div>
+      <div>
+        <h2 class="name">Chips + pastel bg</h2>
+        <p class="desc">02b's structure, with pastel tag bgs. Chips in the caption row instead of a pills bar. Quieter top of page, but loses the persistent color legend and multi-tag filter. Strong second; if 02e-bg's pill row ever feels too loud, this is the fallback.</p>
+        <div class="tags"><span><b>layout:</b> swiss</span><span><b>filter:</b> chips, single-tag</span></div>
+      </div>
+      <div class="side">runner-up<br><span class="v">02b-bg</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">Earlier Swiss explorations — reference only <span class="accent">— first pass</span></p>
+
+    <a class="card" href="02a-inline.html">
+      <div class="num">02a</div>
+      <div>
+        <h2 class="name">Inline hashtags</h2>
+        <p class="desc">Tags rendered inline at the end of each note as <span style="color:var(--swiss-red);font-weight:500">#tag</span>, colored per tag. Click any hashtag to filter. Discovery happens by reading.</p>
+        <div class="tags"><span><b>density:</b> high</span><span><b>style:</b> twitter-ish</span></div>
+      </div>
+      <div class="side">most<br><span class="v">organic</span></div>
+    </a>
+
+    <a class="card" href="02b-chips.html">
+      <div class="num">02b</div>
+      <div>
+        <h2 class="name">Chip caption</h2>
+        <p class="desc">Tags as small uppercase mono chips in the caption row. Each chip colored by its tag. (You said color here is distracting — the BG version above is the answer.)</p>
+        <div class="tags"><span><b>density:</b> medium</span><span><b>your note:</b> color too loud</span></div>
+      </div>
+      <div class="side">prior<br><span class="v">02b base</span></div>
+    </a>
+
+    <a class="card" href="02c-sidebar.html">
+      <div class="num">02c</div>
+      <div>
+        <h2 class="name">Sidebar nav</h2>
+        <p class="desc">Left rail lists every tag with counts and colored swatches. Click to scope. Notes stay clean — the sidebar context tells you what you're looking at.</p>
+        <div class="tags"><span><b>density:</b> low on cards</span><span><b>discovery:</b> sidebar is the map</span></div>
+      </div>
+      <div class="side">most<br><span class="v">navigational</span></div>
+    </a>
+
+    <a class="card" href="02d-grouped.html">
+      <div class="num">02d</div>
+      <div>
+        <h2 class="name">Grouped by tag</h2>
+        <p class="desc">Notes shown under every tag they belong to. Each tag heading is in its tag color with a colored rule. Scroll to browse the taxonomy chromatically.</p>
+        <div class="tags"><span><b>density:</b> tall</span><span><b>discovery:</b> page is the index</span></div>
+      </div>
+      <div class="side">most<br><span class="v">editorial</span></div>
+    </a>
+
+    <a class="card" href="02e-pills.html">
+      <div class="num">02e</div>
+      <div>
+        <h2 class="name">Filter pills</h2>
+        <p class="desc">Row of clickable pill buttons below the search bar. Each pill its own color. Multi-select OR semantics. (You said color here is distracting — BG version above moves the color into note bg.)</p>
+        <div class="tags"><span><b>density:</b> medium</span><span><b>your note:</b> color too loud</span></div>
+      </div>
+      <div class="side">prior<br><span class="v">02e base</span></div>
+    </a>
+  </div>
+
+  <div class="group">
+    <p class="group-label">Preserved on the side <span class="accent">— in <code style="font-family:var(--mono);font-size:12px">themes/side/</code></span></p>
+
+    <a class="card" href="side/02f-nerv.html">
+      <div class="num">side/02f</div>
+      <div>
+        <h2 class="name">Swiss layout + Nervos palette</h2>
+        <p class="desc">The Swiss/02e-bg discipline wearing the full nervos-colors system. Warm purple-black void, amber + cyan + green tag palette. Saira display + IBM Plex body + JetBrains Mono chrome. Faint CRT atmosphere. <em>Kept on the side in case you want a dark-mode option later.</em></p>
+        <div class="tags"><span><b>palette:</b> nervos</span><span><b>layout:</b> swiss</span></div>
+      </div>
+      <div class="side">side<br><span class="v">dark hybrid</span></div>
+    </a>
+
+    <a class="card" href="side/03-nerv.html">
+      <div class="num">side/03</div>
+      <div>
+        <h2 class="name">NERV terminal · night</h2>
+        <p class="desc">MAGI masthead + CRT atmosphere; notes redesigned to be content-first (no console frames). Saira display + IBM Plex Sans body + JetBrains Mono chrome. <em>Preserved on the side.</em></p>
+        <div class="tags"><span><b>vibe:</b> CRT, night</span></div>
+      </div>
+      <div class="side">side<br><span class="v">night nerv</span></div>
+    </a>
+
+    <a class="card" href="side/03b-nerv-light.html">
+      <div class="num">side/03b</div>
+      <div>
+        <h2 class="name">NERV terminal · daylight</h2>
+        <p class="desc">Same content-first NERV rewrite on warm parchment <code style="font-family:var(--mono);font-size:12px">#FBF4E0</code>. <em>Preserved on the side.</em></p>
+        <div class="tags"><span><b>vibe:</b> daylight, parchment</span></div>
+      </div>
+      <div class="side">side<br><span class="v">day nerv</span></div>
+    </a>
+
+    <a class="card" href="04-brutalist.html">
+      <div class="num">04</div>
+      <div>
+        <h2 class="name">Brutalist grid</h2>
+        <p class="desc">Hard 2px black borders, equal-grid cells, orange accent (#ff3b00), one card inverted. Inter Tight body + JetBrains Mono meta. Maximum density.</p>
+        <div class="tags"><span><b>font:</b> inter tight</span><span><b>vibe:</b> raw, harsh</span></div>
+      </div>
+      <div class="side">on side<br><span class="v">fallback</span></div>
+    </a>
+  </div>
+
+  <section class="palette">
+    <div class="palette-label">Two palettes · saturated for chrome (chips, pills, headings) · pastel for note backgrounds</div>
+    <div class="palette-grid">
+      <div class="swatch" style="background:#FBE5E9"><span class="chip" style="background:#C8102E"></span><span class="name">todo</span><span class="hex">C8102E</span></div>
+      <div class="swatch" style="background:#FCEAD7"><span class="chip" style="background:#E8704A"></span><span class="name">shop</span><span class="hex">E8704A</span></div>
+      <div class="swatch" style="background:#DEE6F2"><span class="chip" style="background:#003B8E"></span><span class="name">idea</span><span class="hex">003B8E</span></div>
+      <div class="swatch" style="background:#DBEBE9"><span class="chip" style="background:#0F766E"></span><span class="name">board</span><span class="hex">0F766E</span></div>
+      <div class="swatch" style="background:#ECE4F5"><span class="chip" style="background:#6E3CBC"></span><span class="name">thought</span><span class="hex">6E3CBC</span></div>
+      <div class="swatch" style="background:#EDEBE8"><span class="chip" style="background:#44403c"></span><span class="name">infra</span><span class="hex">44403C</span></div>
+      <div class="swatch" style="background:#F7EDD0"><span class="chip" style="background:#C99700"></span><span class="name">lesson</span><span class="hex">C99700</span></div>
+      <div class="swatch" style="background:#DEEDDB"><span class="chip" style="background:#2D6A4F"></span><span class="name">reminder</span><span class="hex">2D6A4F</span></div>
+      <div class="swatch" style="background:#F1DCE5"><span class="chip" style="background:#B8336A"></span><span class="name">people</span><span class="hex">B8336A</span></div>
+      <div class="swatch" style="background:#FCDDDD"><span class="chip" style="background:#DC2626"></span><span class="name">hot-take</span><span class="hex">DC2626</span></div>
+    </div>
+  </section>
+
+  <footer>
+    <span>Cut: polaroid · newspaper</span>
+    <span>Same 8 notes · 10-color tag palette</span>
+  </footer>
+</div>
+</body>
+</html>

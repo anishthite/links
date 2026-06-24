@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — links-board-parity</title>
+<meta name="task" content="Fork board exactly, then adapt it for links and deploy it.">
+<meta name="date-started" content="2026-06-22">
+<meta name="date-updated" content="2026-06-22">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,board-parity,d1,agent,deploy">
+<meta name="related" content="2026-06-22-links-mvp.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+  .blast-med { color: #b85c00; }
+</style>
+</head>
+<body>
+<h1>Fork board exactly, then adapt it for links</h1>
+<p class="meta"><code>no-git</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-22 · status <b>shipped</b> · blast <span class="blast-med">medium</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Replace the lightweight MVP with a board-parity app, then add link-backed note creation on top.</div>
+  <b>Source</b><div><code>/Users/anishthite/workspace/board</code> as the baseline codebase; URLs fetched by the Worker for extraction.</div>
+  <b>Surface</b><div><code>/</code>, masonry/list/agent UI, whiteboard, wiki, daily page, sandbox agent, <code>/api/notes</code>, and <code>/api/links</code> alias.</div>
+  <b>Schema</b><div>Reuse board schema; add <code>source_*</code> columns on <code>notes</code> via <code>db/migrations/0011_links_metadata.sql</code>.</div>
+  <b>Mobile</b><div>Inherited board responsive behavior; write panel adds URL input and editor adds source actions.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>package.json</code></td><td>touch</td><td>Rename app to <code>links</code>; add <code>db:migrate:all:{local,remote}</code>; point scripts at <code>links-board-db</code>.</td></tr>
+  <tr><td><code>wrangler.toml</code></td><td>touch</td><td>Rename Worker to <code>links</code>; bind new D1 database; keep sandbox container and cron surfaces.</td></tr>
+  <tr><td><code>db/schema.ts</code></td><td>touch</td><td>Add <code>source_*</code> columns to the board <code>notes</code> schema.</td></tr>
+  <tr><td><code>db/migrations/0011_links_metadata.sql</code></td><td>new</td><td>Add link metadata columns and indexes to the board schema.</td></tr>
+  <tr><td><code>server/lib/link-source.ts</code></td><td>new</td><td>Normalize URLs, fetch pages, extract metadata/text, and build link-backed note rows.</td></tr>
+  <tr><td><code>server/routes/notes.ts</code></td><td>touch</td><td>Accept <code>sourceUrl</code> on create and add <code>POST /:uuid/refresh-link</code>.</td></tr>
+  <tr><td><code>server/index.ts</code></td><td>touch</td><td>Alias <code>/api/links</code> to the board note routes.</td></tr>
+  <tr><td><code>src/header.ts</code></td><td>touch</td><td>Add URL input to the existing board write panel; keep the board chrome unchanged otherwise.</td></tr>
+  <tr><td><code>src/note-editor.ts</code></td><td>touch</td><td>Add <code>open source</code> and <code>refresh link</code> actions for link-backed notes.</td></tr>
+  <tr><td><code>src/sticky-note.ts</code></td><td>touch</td><td>Show the source host in the caption for link-backed notes.</td></tr>
+  <tr><td><code>src/lib/link-note.ts</code></td><td>new</td><td>Centralize display/search helpers for notes with optional link metadata.</td></tr>
+  <tr><td><code>server/routes/chat.ts</code></td><td>touch</td><td>Rank and prompt against stored link extracts, not only visible note text.</td></tr>
+  <tr><td><code>server/routes/agent.ts</code></td><td>touch</td><td>Include link metadata in similar-note retrieval and note search output.</td></tr>
+  <tr><td><code>tests/*</code></td><td>touch</td><td>Apply the new migration in test fixtures and update parity expectations to link branding.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Fork <code>board</code> wholesale first. Lowest-risk path to exact UI/backend/agent parity.</td></tr>
+  <tr><td>D-002</td><td>Keep the core entity as <code>notes</code> internally. Reuses the board code with minimal churn; link behavior rides on extra columns.</td></tr>
+  <tr><td>D-003</td><td>Store link metadata on <code>notes</code> as nullable <code>source_*</code> columns. Plain notes still work; links gain fetch/search/source actions.</td></tr>
+  <tr><td>D-004</td><td>Use the existing board write panel and editor, then add a URL field and source buttons. Preserves muscle memory and visual parity.</td></tr>
+  <tr><td>D-005</td><td>Expose <code>/api/links</code> as an alias, not a separate stack. External callers get a link-shaped path without duplicating handlers.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>board fork + small adaptations</code> over <code>grow the MVP forward</code>. Parity is faster by copying the proven app.</td></tr>
+  <tr><td>T-002</td><td><code>nullable columns on notes</code> over <code>new links table + full port</code>. Much smaller blast radius.</td></tr>
+  <tr><td>T-003</td><td><code>saved extract text</code> over <code>live-fetch-only answers</code>. Agent/search stay stable even if the source page changes.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert by redeploying the pre-parity Worker or deleting the new <code>links-board-db</code>; the old MVP database is untouched.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>The workspace matches board’s UI/backend/agent surfaces and still adds link save/refresh behavior.</li>
+  <li><code>npm run typecheck</code>, <code>npm test</code>, and <code>npm run build</code> pass.</li>
+  <li>Local smoke passes with <code>wrangler dev --enable-containers=false</code>.</li>
+  <li>Remote D1 migrations apply to <code>links-board-db</code>.</li>
+  <li>Deploy succeeds at <code>https://links.anishthite.workers.dev</code>.</li>
+  <li>Remote smoke passes for <code>/api/health</code>, link creation, agent session creation, and delete.</li>
+</ul>
+</body>
+</html>

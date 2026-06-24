@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>08-stamp · masthead study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* ─── Postal stamp / dated artifact ──────────────────────────────────
+   * Title + small lede on the left. Right side: a hand-cancelled stamp
+   * block showing today's date and entry count, slightly off-axis. Conveys
+   * "this is a dated artifact, not a SaaS dashboard."
+   * ─────────────────────────────────────────────────────────────────── */
+  .masthead {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 48px;
+    margin-bottom: 44px;
+    padding-top: 6px;
+  }
+
+  .masthead .title h1 {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: clamp(48px, 7vw, 80px);
+    font-weight: 300;
+    letter-spacing: -.045em;
+    line-height: .92;
+    color: var(--stone-900);
+  }
+  .masthead .title h1 .accent { color: var(--swiss-red); }
+  .masthead .title p {
+    margin: 14px 0 0;
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--stone-500);
+    max-width: 42ch;
+    line-height: 1.55;
+    letter-spacing: -.005em;
+  }
+
+  .masthead .stamp {
+    border: 1.5px solid var(--stone-900);
+    padding: 12px 22px 12px;
+    text-align: center;
+    font-family: var(--mono);
+    color: var(--stone-900);
+    min-width: 160px;
+    transform: rotate(-1.6deg);
+    background:
+      radial-gradient(circle at 8px 8px, transparent 2px, var(--stone-50) 2.5px) 0 0 / 12px 12px,
+      var(--stone-50);
+    box-shadow: 0 0 0 2px var(--stone-50), 0 0 0 3px var(--stone-200);
+    position: relative;
+  }
+  .masthead .stamp .day {
+    font-size: 48px;
+    font-weight: 500;
+    line-height: 1;
+    letter-spacing: -.025em;
+    font-variant-numeric: tabular-nums;
+  }
+  .masthead .stamp .mo {
+    font-size: 13px;
+    letter-spacing: .22em;
+    margin-top: 4px;
+    font-weight: 500;
+  }
+  .masthead .stamp .yr {
+    font-size: 11px;
+    letter-spacing: .22em;
+    color: var(--stone-500);
+    margin-top: 2px;
+  }
+  .masthead .stamp .div {
+    height: 1px;
+    background: var(--stone-900);
+    margin: 12px -22px 10px;
+  }
+  .masthead .stamp .cnt {
+    font-size: 10px;
+    letter-spacing: .18em;
+    color: var(--stone-700);
+    text-transform: uppercase;
+  }
+  .masthead .stamp .cnt .v {
+    color: var(--swiss-red);
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+</style>
+</head>
+<body>
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ chosen</a>
+  <a href="05-editorial.html">05 editorial</a>
+  <a href="06-ledger.html">06 ledger</a>
+  <a href="07-quiet.html">07 quiet</a>
+  <a class="active" href="08-stamp.html">08 stamp</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <div class="title">
+      <h1>notes<span class="accent">.</span></h1>
+      <p>A log of small ideas, half-thoughts, and the occasional grocery list — kept since 2012.</p>
+    </div>
+    <div class="stamp" aria-hidden="true">
+      <div class="day">28</div>
+      <div class="mo">MAY</div>
+      <div class="yr">MMXXVI</div>
+      <div class="div"></div>
+      <div class="cnt"><span class="v" data-count>1,733</span> entries</div>
+    </div>
+  </header>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> save</div>
+  </section>
+
+  <div class="search">
+    <span class="label">Find</span>
+    <input type="text" id="search" placeholder="search notes…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>08 · stamp masthead</span><span>title + cancelled postal stamp · dated artifact feel</span></footer>
+</main>
+<script src="_shared.js"></script>
+</body>
+</html>

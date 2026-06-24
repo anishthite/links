@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Agent chat UI playground</title>
+<style>
+  :root { color-scheme: dark; font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #09090b; color: #f4f4f5; }
+  button, textarea, select, input { font: inherit; }
+  .app { min-height: 100vh; display: grid; grid-template-columns: 320px 1fr; }
+  .controls { border-right: 1px solid #27272a; padding: 22px; background: #0c0c0f; overflow: auto; }
+  .controls h1 { margin: 0 0 4px; font-size: 18px; letter-spacing: -.03em; }
+  .controls p { margin: 0 0 18px; color: #a1a1aa; font-size: 13px; line-height: 1.45; }
+  .group { border-top: 1px solid #27272a; padding: 16px 0; }
+  .group h2 { margin: 0 0 10px; color: #d4d4d8; font-size: 12px; text-transform: uppercase; letter-spacing: .1em; }
+  .presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .preset, .copy { border: 1px solid #3f3f46; background: #18181b; color: #fafafa; border-radius: 12px; padding: 9px 10px; cursor: pointer; }
+  .preset:hover, .copy:hover { background: #27272a; }
+  label { display: grid; gap: 6px; margin: 12px 0; color: #d4d4d8; font-size: 13px; }
+  .row { display: flex; justify-content: space-between; gap: 12px; color: #a1a1aa; font-size: 12px; }
+  input[type="range"] { width: 100%; }
+  select { width: 100%; border: 1px solid #3f3f46; background: #18181b; color: #fafafa; border-radius: 10px; padding: 8px 10px; }
+  .stage { padding: 32px; overflow: auto; }
+  .previewWrap { min-height: calc(100vh - 64px); display: grid; place-items: center; }
+  .agent { width: min(100%, var(--width)); display: flex; flex-direction: column; gap: var(--gap); }
+  .runtime { display: flex; align-items: center; justify-content: space-between; gap: 12px; border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.045); border-radius: 18px; padding: 10px 12px; color: #a1a1aa; font-size: 13px; }
+  .runtime strong { color: #fafafa; }
+  .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 0 4px rgba(34,197,94,.14); margin-right: 8px; }
+  .chat { min-height: var(--height); display: flex; flex-direction: column; overflow: hidden; border: 1px solid rgba(255,255,255,.09); background: var(--surface); border-radius: var(--radius); box-shadow: 0 24px 70px rgba(0,0,0,var(--shadow)); }
+  .messages { flex: 1; padding: var(--pad); display: flex; flex-direction: column; gap: 18px; }
+  .hello { margin: auto; font-size: clamp(28px,5vw,46px); line-height: 1.05; letter-spacing: -.05em; font-weight: 650; color: #fafafa; text-align: center; }
+  .msg { max-width: 78%; }
+  .role { margin-bottom: 6px; color: #71717a; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; text-transform: lowercase; letter-spacing: .06em; }
+  .body { color: #e4e4e7; font-size: var(--text); line-height: 1.6; }
+  .user { align-self: flex-end; }
+  .user .role { text-align: right; }
+  .user .body { background: #f4f4f5; color: #09090b; border-radius: 20px 20px 5px 20px; padding: 12px 15px; box-shadow: 0 10px 24px rgba(0,0,0,.22); }
+  .composer { margin: 0 var(--composerMargin) var(--composerMargin); border: 1px solid rgba(255,255,255,.12); background: #111113; border-radius: calc(var(--radius) - 2px); padding: 10px; box-shadow: 0 14px 36px rgba(0,0,0,.28); }
+  .composer textarea { width: 100%; min-height: var(--inputH); resize: none; border: 0; outline: 0; background: transparent; color: #fafafa; padding: 8px 10px; }
+  .foot { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: #71717a; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .send { border: 0; background: #fafafa; color: #09090b; border-radius: 999px; padding: 8px 13px; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; }
+  .context { display: grid; grid-template-columns: 1fr 1fr; gap: var(--gap); opacity: var(--contextOpacity); }
+  .card { border: 1px solid rgba(255,255,255,.09); background: rgba(255,255,255,.045); border-radius: 20px; padding: 14px; }
+  .card h3 { margin: 0 0 10px; color: #d4d4d8; font: 11px ui-monospace, SFMono-Regular, Menlo, monospace; letter-spacing: .08em; text-transform: lowercase; }
+  .source { border: 1px solid rgba(255,255,255,.08); background: #111113; border-radius: 14px; padding: 10px; color: #d4d4d8; font-size: 13px; }
+  .prompt { border-top: 1px solid #27272a; padding-top: 12px; }
+  .prompt pre { white-space: pre-wrap; color: #d4d4d8; background: #18181b; border: 1px solid #27272a; border-radius: 12px; padding: 12px; font-size: 12px; line-height: 1.45; }
+  @media (max-width: 900px) { .app { grid-template-columns: 1fr; } .controls { border-right: 0; border-bottom: 1px solid #27272a; } .context { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="app">
+  <aside class="controls">
+    <h1>Agent chat UI playground</h1>
+    <p>Tune the ChatGPT-style shell before hard-coding it into Board.</p>
+    <div class="group"><h2>Presets</h2><div class="presets"><button class="preset" data-preset="chatgpt">ChatGPT</button><button class="preset" data-preset="compact">Compact</button><button class="preset" data-preset="glass">Glass</button><button class="preset" data-preset="debug">Debug visible</button></div></div>
+    <div class="group"><h2>Layout</h2>
+      <label><span class="row"><span>Width</span><b id="widthVal"></b></span><input id="width" type="range" min="760" max="1180" step="20"></label>
+      <label><span class="row"><span>Height</span><b id="heightVal"></b></span><input id="height" type="range" min="420" max="760" step="20"></label>
+      <label><span class="row"><span>Padding</span><b id="padVal"></b></span><input id="pad" type="range" min="20" max="56" step="2"></label>
+    </div>
+    <div class="group"><h2>Feel</h2>
+      <label><span class="row"><span>Radius</span><b id="radiusVal"></b></span><input id="radius" type="range" min="14" max="34" step="1"></label>
+      <label><span class="row"><span>Shadow</span><b id="shadowVal"></b></span><input id="shadow" type="range" min="0" max=".45" step=".01"></label>
+      <label><span class="row"><span>Text size</span><b id="textVal"></b></span><input id="text" type="range" min="14" max="17" step=".5"></label>
+    </div>
+    <div class="group"><h2>Context</h2>
+      <label>Context panels<select id="context"><option value="1">visible below chat</option><option value="0.35">subtle</option><option value="0">hidden</option></select></label>
+    </div>
+    <div class="group prompt"><h2>Prompt output</h2><pre id="prompt"></pre><button class="copy" id="copy">Copy prompt</button></div>
+  </aside>
+  <main class="stage"><div class="previewWrap"><section class="agent" id="agent">
+    <div class="runtime"><span><i class="dot"></i><strong>agent</strong> sandbox starts automatically</span><span>auto-stop 15m idle</span></div>
+    <div class="chat">
+      <div class="messages"><div class="hello">What can I help with?</div><article class="msg user"><div class="role">user</div><div class="body">Summarize my notes about launch plans.</div></article><article class="msg"><div class="role">assistant</div><div class="body">I found three launch-plan notes. The recurring theme is to keep the first release narrow, validate onboarding, and defer the analytics dashboard until usage justifies it.</div></article></div>
+      <form class="composer"><textarea placeholder="Ask anything…"></textarea><div class="foot"><span>ready</span><button class="send" type="button">ask</button></div></form>
+    </div>
+    <div class="context" id="contextPreview"><div class="card"><h3>sources</h3><div class="source">#1 · launch, product<br>Keep first release narrow and measure activation.</div></div><div class="card"><h3>draft note</h3><div class="source">Answer appears here before saving.</div></div></div>
+  </section></div></main>
+</div>
+<script>
+const defaults = { width: 980, height: 560, pad: 40, radius: 26, shadow: .16, text: 15, context: '1' };
+const presets = { chatgpt: defaults, compact: { width: 860, height: 500, pad: 26, radius: 20, shadow: .10, text: 14, context: '0.35' }, glass: { width: 1040, height: 620, pad: 48, radius: 32, shadow: .28, text: 15.5, context: '1' }, debug: { width: 1120, height: 540, pad: 30, radius: 22, shadow: .12, text: 14.5, context: '1' } };
+const state = { ...defaults };
+const ids = ['width','height','pad','radius','shadow','text','context'];
+for (const id of ids) document.getElementById(id).addEventListener('input', e => { state[id] = e.target.value; render(); });
+document.querySelectorAll('[data-preset]').forEach(btn => btn.addEventListener('click', () => { Object.assign(state, presets[btn.dataset.preset]); sync(); render(); }));
+document.getElementById('copy').addEventListener('click', async () => { await navigator.clipboard.writeText(document.getElementById('prompt').textContent); document.getElementById('copy').textContent = 'Copied!'; setTimeout(() => document.getElementById('copy').textContent = 'Copy prompt', 900); });
+function sync(){ for (const id of ids) document.getElementById(id).value = state[id]; }
+function render(){
+  const agent = document.getElementById('agent');
+  agent.style.setProperty('--width', state.width + 'px');
+  agent.style.setProperty('--height', state.height + 'px');
+  agent.style.setProperty('--pad', state.pad + 'px');
+  agent.style.setProperty('--radius', state.radius + 'px');
+  agent.style.setProperty('--shadow', state.shadow);
+  agent.style.setProperty('--text', state.text + 'px');
+  agent.style.setProperty('--gap', Number(state.pad) > 34 ? '16px' : '12px');
+  agent.style.setProperty('--composerMargin', Math.max(14, Math.round(Number(state.pad) * .62)) + 'px');
+  agent.style.setProperty('--inputH', Number(state.height) > 600 ? '62px' : '54px');
+  agent.style.setProperty('--surface', Number(state.shadow) > .22 ? 'rgba(24,24,27,.88)' : '#18181b');
+  agent.style.setProperty('--contextOpacity', state.context);
+  widthVal.textContent = state.width + 'px'; heightVal.textContent = state.height + 'px'; padVal.textContent = state.pad + 'px'; radiusVal.textContent = state.radius + 'px'; shadowVal.textContent = state.shadow; textVal.textContent = state.text + 'px';
+  const parts = ['Make the Board agent view feel like ChatGPT: centered conversation, a large calm empty state, user bubbles on the right, assistant text on the left, and a rounded prompt input anchored inside the chat card.'];
+  if (state.width != defaults.width) parts.push(`Use a ${state.width}px max-width shell.`);
+  if (state.radius != defaults.radius) parts.push(`Use ${state.radius}px card radius.`);
+  if (state.context !== defaults.context) parts.push(state.context === '0' ? 'Hide context/debug panels by default.' : 'Make context panels visually secondary below chat.');
+  if (state.shadow > .24) parts.push('Use a deeper floating card shadow.');
+  prompt.textContent = parts.join(' ');
+}
+sync(); render();
+</script>
+</body>
+</html>

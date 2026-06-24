@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>06-ledger · masthead study</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@200;300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_shared.css">
+<style>
+  /* ─── Ledger / count-as-hero ─────────────────────────────────────────
+   * The number IS the headline. 1,733 set huge, light, tabular. Title
+   * demoted to a quiet eyebrow above it. The 14-year span is told via a
+   * thin timeline rail with a swiss-red dot at "today".
+   * ─────────────────────────────────────────────────────────────────── */
+  .masthead { margin-bottom: 44px; padding-top: 6px; }
+
+  .masthead .eyebrow {
+    font-family: var(--mono);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: .14em;
+    color: var(--stone-500);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .masthead .eyebrow .dot { width: 5px; height: 5px; background: var(--swiss-red); border-radius: 50%; }
+  .masthead .eyebrow .sep { color: var(--stone-300); }
+
+  .masthead .lockup {
+    display: flex;
+    align-items: baseline;
+    gap: 22px;
+    margin-top: 14px;
+  }
+  .masthead .big {
+    font-family: var(--sans);
+    font-size: clamp(80px, 13vw, 168px);
+    font-weight: 200;
+    line-height: .82;
+    letter-spacing: -.055em;
+    color: var(--stone-900);
+    font-variant-numeric: tabular-nums;
+  }
+  .masthead .stack {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding-bottom: 14px;
+  }
+  .masthead .stack .lead {
+    font-family: var(--sans);
+    font-size: 19px;
+    font-weight: 400;
+    color: var(--stone-900);
+    letter-spacing: -.01em;
+    line-height: 1.2;
+  }
+  .masthead .stack .sub {
+    font-family: var(--sans);
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--stone-500);
+    letter-spacing: -.005em;
+    line-height: 1.3;
+  }
+
+  .masthead .timeline {
+    margin-top: 24px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    gap: 14px;
+    align-items: center;
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: .12em;
+    color: var(--stone-500);
+    text-transform: uppercase;
+    font-variant-numeric: tabular-nums;
+  }
+  .masthead .timeline .bar { height: 1px; background: var(--stone-300); position: relative; }
+  .masthead .timeline .bar::before {
+    content: '';
+    position: absolute;
+    right: -4px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 9px; height: 9px;
+    background: var(--swiss-red);
+    border-radius: 50%;
+    box-shadow: 0 0 0 4px var(--stone-50);
+  }
+</style>
+</head>
+<body>
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ chosen</a>
+  <a href="05-editorial.html">05 editorial</a>
+  <a class="active" href="06-ledger.html">06 ledger</a>
+  <a href="07-quiet.html">07 quiet</a>
+  <a href="08-stamp.html">08 stamp</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <div class="eyebrow">
+      <span class="dot"></span>
+      <span>Notes</span>
+      <span class="sep">/</span>
+      <span>Personal log</span>
+      <span class="sep">/</span>
+      <span>Fourteenth year</span>
+    </div>
+
+    <div class="lockup">
+      <span class="big" data-count>1,733</span>
+      <div class="stack">
+        <span class="lead">entries</span>
+        <span class="sub">kept since February 2012.</span>
+      </div>
+    </div>
+
+    <div class="timeline">
+      <span>2012</span>
+      <span class="bar"></span>
+      <span>May 2026</span>
+    </div>
+  </header>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> save</div>
+  </section>
+
+  <div class="search">
+    <span class="label">Find</span>
+    <input type="text" id="search" placeholder="search notes…">
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>06 · ledger masthead</span><span>the count is the headline · 14-year timeline</span></footer>
+</main>
+<script src="_shared.js"></script>
+</body>
+</html>

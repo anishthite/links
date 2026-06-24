@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — chunked-chat-retrieval</title>
+<meta name="task" content="Make chat retrieve focused chunks from long link text before answering.">
+<meta name="date-started" content="2026-06-23">
+<meta name="date-updated" content="2026-06-23">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,chat,retrieval,rag,chunks">
+<meta name="related" content="2026-06-22-links-board-parity.html,2026-06-22-links-mvp.html,2026-06-23-youtube-transcript-ingest.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+  .blast-low { color: #2a7a2a; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+</style>
+</head>
+<body>
+<h1>Chunk chat retrieval for long link text</h1>
+<p class="meta"><code>no-commit</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-23 · status <b>shipped</b> · blast <span class="blast-low">low</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Make <code>/api/chat/stream</code> choose focused evidence from long saved extracts instead of clipping whole-note text from the front.</div>
+  <b>Surface</b><div><code>server/routes/chat.ts</code> retrieval and prompt context only.</div>
+  <b>Schema</b><div>No migration; derive chunks from existing <code>source_content_text</code> at request time.</div>
+  <b>Eval</b><div><code>npm test -- tests/notes-chat.test.ts</code> and <code>npm run typecheck</code> pass.</div>
+  <b>Deploy</b><div>Deployed to <code>https://links.anishthite.workers.dev</code> as version <code>36a96546-21fc-459d-a48c-a1252ce26770</code>.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Tokenize the query plus recent chat with existing stopword filtering.</li>
+  <li>Score note metadata with the existing title/tag/text weights.</li>
+  <li>Split long <code>sourceContentText</code> into ~1,200-character windows with ~200-character overlap.</li>
+  <li>Score each chunk with the same lexical scorer plus metadata boost.</li>
+  <li>Keep the best chunk per note; return top notes with <code>sourceContentText</code> replaced by the winning chunk for prompting.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>server/routes/chat.ts</code></td><td>touch</td><td>Add in-memory chunk candidates and send the best evidence chunk into the answer prompt.</td></tr>
+  <tr><td><code>tests/notes-chat.test.ts</code></td><td>touch</td><td>Assert chat returns the late matching chunk and not the early distractor.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Chunk at query time. Avoids schema/index backfill before a local golden eval exists.</td></tr>
+  <tr><td>D-002</td><td>Keep one best chunk per note. Existing UI opens notes by <code>uuid</code>; duplicate source cards would add noise.</td></tr>
+  <tr><td>D-003</td><td>Use lexical scoring first. Current corpus is small enough to scan and the next useful step is evidence focus, not vector infra.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>in-memory chunks</code> over <code>D1 FTS chunk table</code>. Smaller diff and no migration risk.</td></tr>
+  <tr><td>T-002</td><td><code>character windows</code> over <code>tokenizer dependency</code>. Good enough for extracted text and transcripts.</td></tr>
+</table>
+
+<h2>Deviations</h2>
+<table>
+  <tr><th>ID</th><th>From spec · Did · Reason</th></tr>
+  <tr><td>X-001</td><td>Deploy script tried to build containers; deployed with <code>--containers-rollout=none</code>. Retrieval changed only Worker code/assets and Docker was unavailable locally.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Revert <code>server/routes/chat.ts</code> and the test; stored note data is untouched.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Add persistent chunk FTS only after a golden chat retrieval eval shows request-time scan is too slow or misses too much.</li>
+  <li>L-002 · Add embedding/RRF only after lexical chunk retrieval fails real questions.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Chat source snippets can come from late chunks in long link extracts.</li>
+  <li>Existing chat streaming behavior stays unchanged.</li>
+  <li><code>npm test -- tests/notes-chat.test.ts</code> passes.</li>
+  <li><code>npm run typecheck</code> passes.</li>
+</ul>
+</body>
+</html>

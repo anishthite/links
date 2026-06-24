@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>02b-bg · Swiss · tag as background (chips)</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{--stone-50:#fafaf9;--stone-100:#f5f5f4;--stone-200:#e7e5e4;--stone-300:#d6d3d1;--stone-400:#a8a29e;--stone-500:#78716c;--stone-700:#44403c;--stone-900:#1c1917;--swiss-red:#C8102E;--sans:'IBM Plex Sans',system-ui,sans-serif;--mono:'IBM Plex Mono',monospace}
+  *{box-sizing:border-box}html,body{margin:0;padding:0}
+  body{background:var(--stone-50);color:var(--stone-900);font-family:var(--sans);font-size:16px;line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+  .theme-nav{position:fixed;top:24px;right:24px;z-index:100;display:flex;flex-wrap:wrap;max-width:60vw;font-family:var(--mono);font-size:11px;background:var(--stone-50);border:1px solid var(--stone-200)}
+  .theme-nav a{padding:6px 10px;color:var(--stone-500);text-decoration:none;text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--stone-200)}
+  .theme-nav a:last-child{border-right:none}
+  .theme-nav a.active{background:var(--stone-900);color:var(--stone-50)}
+  .theme-nav a:hover:not(.active){color:var(--stone-900)}
+
+  .board{max-width:1400px;margin:0 auto;padding:64px 48px 96px}
+  .masthead{display:grid;grid-template-columns:1fr auto;align-items:end;gap:24px;padding-bottom:48px}
+  .display{font-size:clamp(48px,7vw,80px);font-weight:300;line-height:.95;letter-spacing:-.04em;margin:0}
+  .display .accent{color:var(--swiss-red)}
+  .meta-line{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .meta-line .v{color:var(--stone-900)}
+
+  .write{margin:0 0 48px;border-top:1px solid var(--stone-900);border-bottom:1px solid var(--stone-200);padding:24px 0}
+  .write textarea{width:100%;max-width:60ch;border:none;background:transparent;outline:none;resize:none;font-family:var(--sans);font-size:22px;font-weight:300;line-height:1.4;color:var(--stone-900);padding:0;min-height:1.4em}
+  .write textarea::placeholder{color:var(--stone-300)}
+  .write .hint{margin-top:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-400)}
+  .write .hint kbd{font-family:var(--mono);padding:1px 5px;border:1px solid var(--stone-300);border-radius:2px;font-size:10px;color:var(--stone-700)}
+
+  .search{margin:0 0 48px;border-bottom:1px solid var(--stone-300);padding-bottom:10px;display:flex;align-items:baseline;gap:16px;flex-wrap:wrap}
+  .search .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+  .search input{flex:1;min-width:200px;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:20px;font-weight:300;color:var(--stone-900);padding:0}
+  .search input::placeholder{color:var(--stone-300)}
+  .search .count{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);white-space:nowrap}
+  .search .count .n{color:var(--stone-900)}
+  .search .filter{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--swiss-red);white-space:nowrap}
+  .search .filter button{background:none;border:none;color:inherit;font:inherit;cursor:pointer;padding:0}
+
+  /* Masonry: gutter is now the only separator. Cards float on cream bg. */
+  .notes{columns:1;column-gap:24px}
+  @media(min-width:720px){.notes{columns:2;column-gap:22px}}
+  @media(min-width:1080px){.notes{columns:3;column-gap:22px}}
+  @media(min-width:1440px){.notes{columns:4;column-gap:22px}}
+
+  .note{
+    break-inside:avoid;margin:0 0 22px;
+    padding:20px 22px 16px;
+    background:var(--c, var(--stone-100));
+    cursor:pointer;
+    transition:transform .12s ease, box-shadow .12s ease;
+    box-shadow:0 1px 0 rgba(0,0,0,0.04);
+  }
+  .note:hover{transform:translateY(-2px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.18)}
+  .note .text{font-size:17px;font-weight:400;line-height:1.5;color:var(--stone-900);margin:0;max-width:60ch}
+  .note .caption{margin-top:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-700);display:flex;align-items:center;gap:10px;flex-wrap:wrap;opacity:.85}
+  .note .caption .dot{color:var(--stone-500);opacity:.6}
+  .note .chips{display:flex;gap:6px;flex-wrap:wrap}
+  .note .chip{padding:1px 6px;border:1px solid rgba(0,0,0,0.18);color:var(--stone-900);font-family:var(--mono);font-size:10px;letter-spacing:.10em;cursor:pointer;transition:all .12s;background:transparent;font-weight:500;text-transform:uppercase}
+  .note .chip:hover{background:rgba(0,0,0,0.1)}
+  .note .chip.active{background:var(--stone-900);border-color:var(--stone-900);color:var(--stone-50)}
+  .note .chip.primary{background:rgba(255,255,255,0.5);border-color:transparent}
+
+  footer{margin-top:96px;padding-top:24px;border-top:1px solid var(--stone-900);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+</style>
+</head>
+<body>
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="01-corkboard.html">01 CORK</a>
+  <a href="02-swiss.html">02 SWISS</a>
+  <a href="02a-inline.html">02a</a>
+  <a href="02b-chips.html">02b</a>
+  <a class="active" href="02b-bg.html">02b-BG</a>
+  <a href="02c-sidebar.html">02c</a>
+  <a href="02d-grouped.html">02d</a>
+  <a href="02e-pills.html">02e</a>
+  <a href="02e-bg.html">02e-BG ★</a>
+  <a href="side/02f-nerv.html">side: 02f</a>
+  <a href="side/03-nerv.html">side: 03</a>
+  <a href="side/03b-nerv-light.html">side: 03b</a>
+  <a href="04-brutalist.html">04 BRUTAL</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1 class="display">Notes<span class="accent">.</span></h1>
+    <span class="meta-line"><span class="v">1,776</span> entries · 2026</span>
+  </header>
+
+  <section class="write">
+    <textarea placeholder="write a note…" rows="1"></textarea>
+    <div class="hint"><kbd>⌘</kbd> <kbd>↵</kbd> save · <kbd>tab</kbd> add tag</div>
+  </section>
+
+  <div class="search">
+    <span class="label">Find</span>
+    <input type="text" id="search" placeholder="search · or click a chip">
+    <span class="filter" id="filter" style="display:none"><button id="clear-filter">clear ✕</button></span>
+    <span class="count"><span class="n" id="count">8</span> / 8</span>
+  </div>
+
+  <div class="notes" id="notes"></div>
+
+  <footer><span>02b-bg · tag as background</span><span>color is ambient · chips remain filter affordance</span></footer>
+</main>
+
+<script>
+  const NOTES = [
+    { uuid:'a1', text:'buy bok choy', updated:'2026-05-22T18:04:00Z', tags:['todo','shop'] },
+    { uuid:'b2', text:'idea: sticky note board with masonry layout via pretext', updated:'2026-05-22T15:31:00Z', tags:['idea','board'] },
+    { uuid:'c3', text:'the difference between vision and hallucination is whether other people can see it too', updated:'2026-05-21T22:11:00Z', tags:['thought'] },
+    { uuid:'d4', text:'todo: ssh into the new box, set up tailscale, install zellij', updated:'2026-05-21T09:47:00Z', tags:['todo','infra'] },
+    { uuid:'e5', text:"today's lesson — pretext is a library not a framework. you render with whatever.", updated:'2026-05-20T16:22:00Z', tags:['lesson'] },
+    { uuid:'f6', text:'jamie birthday march 14', updated:'2026-05-19T11:00:00Z', tags:['reminder','people'] },
+    { uuid:'g7', text:'the way to import 40 thousand art hoes to SF to teach engineers love (and thus save humankind) would be to open an elite fashion school. considering the materials science infrastructure this is actually the obvious path forward for fashion.', updated:'2026-05-18T03:14:00Z', tags:['idea','hot-take'] },
+    { uuid:'h8', text:'every infra choice is a bet on who you will be in two years', updated:'2026-05-17T08:00:00Z', tags:['thought','infra'] },
+  ];
+  const fmt = iso => { const d=new Date(iso),p=n=>String(n).padStart(2,'0'); return `${p(d.getDate())}.${p(d.getMonth()+1)}.${String(d.getFullYear()).slice(2)}`; };
+  /* Pastel tag backgrounds — lightened versions of the saturated palette */
+  const TAG_BG = {todo:'#FBE5E9',shop:'#FCEAD7',idea:'#DEE6F2',board:'#DBEBE9',thought:'#ECE4F5',infra:'#EDEBE8',lesson:'#F7EDD0',reminder:'#DEEDDB',people:'#F1DCE5','hot-take':'#FCDDDD'};
+  const tagBg = t => TAG_BG[t] || '#F5F5F4';
+  let activeTag = null;
+  function render(){
+    const q = document.getElementById('search').value.toLowerCase().trim();
+    let list = NOTES;
+    if (activeTag) list = list.filter(n => n.tags.includes(activeTag));
+    if (q) list = list.filter(n => n.text.toLowerCase().includes(q));
+    const root = document.getElementById('notes'); root.innerHTML='';
+    list.forEach(n=>{
+      const el=document.createElement('article'); el.className='note';
+      el.style.setProperty('--c', tagBg(n.tags[0]));
+      const chips = n.tags.map((t,i)=>`<button class="chip ${i===0?'primary':''} ${t===activeTag?'active':''}" data-tag="${t}">${t}</button>`).join('');
+      el.innerHTML=`<p class="text"></p><div class="caption"><span>${fmt(n.updated)}</span><span class="dot">·</span><span class="chips">${chips}</span></div>`;
+      el.querySelector('.text').textContent = n.text;
+      root.appendChild(el);
+    });
+    document.getElementById('count').textContent = list.length;
+    const f = document.getElementById('filter');
+    if (activeTag) { f.style.display=''; f.querySelector('button').textContent = `${activeTag} ✕`; } else f.style.display='none';
+  }
+  render();
+  document.getElementById('notes').addEventListener('click', e => {
+    if (e.target.classList.contains('chip')) { activeTag = (activeTag === e.target.dataset.tag ? null : e.target.dataset.tag); render(); }
+  });
+  document.getElementById('clear-filter').addEventListener('click', () => { activeTag = null; render(); });
+  let t; document.getElementById('search').addEventListener('input', () => { clearTimeout(t); t = setTimeout(render, 150); });
+</script>
+</body>
+</html>

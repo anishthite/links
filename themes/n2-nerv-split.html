@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>n2 · nerv split</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Saira+Extra+Condensed:wght@500;700&family=IBM+Plex+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="_nerv-shared.css">
+<style>
+  /* N2 — Split: write LEFT, search RIGHT, on the same row
+   * Two-column action row with a vertical NERV gradient rule between them.
+   * Write panel is wider (2fr) + amber ▶; search is narrower (1fr) + cyan ⌕.
+   * Different colors make the two modes visually distinct at a glance. */
+
+  .masthead {
+    display: flex; align-items: baseline; gap: 12px;
+    margin: 0 0 16px; padding: 0;
+  }
+  .masthead h1 {
+    margin: 0;
+    font-family: var(--display);
+    font-size: 32px; font-weight: 700;
+    letter-spacing: .045em; text-transform: uppercase;
+    color: var(--a400); line-height: 1;
+  }
+  .masthead .n {
+    font-family: var(--mono); font-size: 12px;
+    color: var(--text-3); letter-spacing: .08em;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Action row — write | search */
+  .action-row {
+    display: grid;
+    grid-template-columns: 2fr 1px 1fr;
+    gap: 18px;
+    border-top: 1px solid var(--rule-2);
+    border-bottom: 1px solid var(--rule);
+    padding: 12px 0;
+    margin: 0 0 14px;
+  }
+  .action-row .divider {
+    background: linear-gradient(180deg, transparent, var(--a700) 30%, var(--c700) 70%, transparent);
+    width: 1px;
+  }
+
+  .write { display: flex; align-items: baseline; gap: 10px; min-width: 0 }
+  .write .prompt { color: var(--a400); font-family: var(--mono); font-size: 14px; line-height: 1; flex: none; padding-top: 4px }
+  .write textarea {
+    flex: 1; min-width: 0;
+    border: none; background: transparent; outline: none; resize: none;
+    font-family: var(--sans); font-size: 19px; font-weight: 300; line-height: 1.4;
+    color: var(--text); padding: 0; min-height: 1.4em;
+  }
+  .write textarea::placeholder { color: var(--text-3); font-style: italic }
+  .write .hint { display: none }   /* save hint moves below entire row */
+
+  .search { display: flex; align-items: baseline; gap: 10px; min-width: 0 }
+  .search .icon { color: var(--c400); font-size: 13px; line-height: 1; flex: none }
+  .search input {
+    flex: 1; min-width: 0;
+    border: none; background: transparent; outline: none;
+    font-family: var(--sans); font-size: 15px; font-weight: 300;
+    color: var(--text); padding: 0;
+  }
+  .search input::placeholder { color: var(--text-3) }
+  .search .count {
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    letter-spacing: .08em; white-space: nowrap; font-variant-numeric: tabular-nums;
+  }
+  .search .count .n { color: var(--c300) }
+
+  .meta-row {
+    display: flex; justify-content: space-between; align-items: center;
+    font-family: var(--mono); font-size: 10px; color: var(--text-3);
+    letter-spacing: .10em; text-transform: uppercase;
+    margin: 0 0 16px;
+  }
+  .meta-row kbd { color: var(--a300); padding: 0 3px; border: 1px solid var(--rule-2); font-size: 9px }
+</style>
+</head>
+<body>
+<div class="vignette"></div>
+<div class="scanlines"></div>
+
+<nav class="theme-nav">
+  <a href="index.html">ALL</a>
+  <a href="02e-bg.html">★ live</a>
+  <a href="n1-nerv-compact.html">n1 compact</a>
+  <a class="active" href="n2-nerv-split.html">n2 split</a>
+  <a href="n3-nerv-mode.html">n3 mode</a>
+  <a href="n4-nerv-strip.html">n4 strip</a>
+</nav>
+
+<main class="board">
+  <header class="masthead">
+    <h1>Notes</h1>
+    <span class="n" data-count>2,397</span>
+  </header>
+
+  <div class="action-row">
+    <section class="write">
+      <span class="prompt">▶</span>
+      <textarea placeholder="write a note…" rows="1"></textarea>
+    </section>
+    <div class="divider" aria-hidden="true"></div>
+    <div class="search">
+      <span class="icon">⌕</span>
+      <input type="text" id="search" placeholder="search…">
+      <span class="count"><span class="n" id="count">8</span></span>
+    </div>
+  </div>
+
+  <div class="meta-row">
+    <span><kbd>⌘</kbd><kbd>↵</kbd> save</span>
+  </div>
+
+  <div class="pills" id="pills"></div>
+  <div class="notes" id="notes"></div>
+
+  <footer class="bottom"><span>n2 · nerv split</span><span>write left · search right · one row</span></footer>
+</main>
+<script src="_shared.js"></script>
+</body>
+</html>

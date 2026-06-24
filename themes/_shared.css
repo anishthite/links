@@ -1,0 +1,61 @@
+/* Shared body styles for masthead studies (05–08).
+ * Holds everything that's NOT the masthead, so each variation file can focus
+ * on its own header design. Mirrors 02e-bg.html exactly below the header. */
+
+:root {
+  --stone-50:#fafaf9; --stone-100:#f5f5f4; --stone-200:#e7e5e4; --stone-300:#d6d3d1;
+  --stone-400:#a8a29e; --stone-500:#78716c; --stone-700:#44403c; --stone-900:#1c1917;
+  --swiss-red:#C8102E;
+  --sans:'IBM Plex Sans', system-ui, sans-serif;
+  --mono:'IBM Plex Mono', monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{background:var(--stone-50);color:var(--stone-900);font-family:var(--sans);font-size:16px;line-height:1.6;font-weight:400;-webkit-font-smoothing:antialiased;min-height:100vh}
+
+.theme-nav{position:fixed;top:24px;right:24px;z-index:100;display:flex;flex-wrap:wrap;max-width:60vw;font-family:var(--mono);font-size:11px;background:var(--stone-50);border:1px solid var(--stone-200)}
+.theme-nav a{padding:6px 10px;color:var(--stone-500);text-decoration:none;text-transform:uppercase;letter-spacing:.08em;border-right:1px solid var(--stone-200)}
+.theme-nav a:last-child{border-right:none}
+.theme-nav a.active{background:var(--stone-900);color:var(--stone-50)}
+.theme-nav a:hover:not(.active){color:var(--stone-900)}
+
+.board{max-width:1400px;margin:0 auto;padding:64px 48px 96px}
+
+.write{margin:0 0 32px;border-top:1px solid var(--stone-900);border-bottom:1px solid var(--stone-200);padding:24px 0}
+.write textarea{width:100%;max-width:60ch;border:none;background:transparent;outline:none;resize:none;font-family:var(--sans);font-size:22px;font-weight:300;line-height:1.4;color:var(--stone-900);padding:0;min-height:1.4em}
+.write textarea::placeholder{color:var(--stone-300)}
+.write .hint{margin-top:12px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-400)}
+.write .hint kbd{font-family:var(--mono);padding:1px 5px;border:1px solid var(--stone-300);border-radius:2px;font-size:10px;color:var(--stone-700)}
+
+.search{margin:0 0 16px;border-bottom:1px solid var(--stone-300);padding-bottom:10px;display:flex;align-items:baseline;gap:16px}
+.search .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}
+.search input{flex:1;border:none;background:transparent;outline:none;font-family:var(--sans);font-size:20px;font-weight:300;color:var(--stone-900);padding:0}
+.search input::placeholder{color:var(--stone-300)}
+.search .count{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);white-space:nowrap}
+.search .count .n{color:var(--stone-900)}
+
+.pills{margin:0 0 40px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.pills .label{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500);margin-right:4px}
+.pill{font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.08em;padding:5px 10px;border:1px solid var(--c, var(--stone-300));background:transparent;color:var(--c, var(--stone-700));cursor:pointer;transition:all .12s;border-radius:999px;font-weight:500}
+.pill:hover{background:var(--c-bg, var(--stone-100));color:var(--c, var(--stone-900))}
+.pill.active{background:var(--c, var(--swiss-red));border-color:var(--c, var(--swiss-red));color:var(--stone-50)}
+.pill .n{margin-left:6px;opacity:.7;font-size:10px}
+.pill.all{border-style:dashed;color:var(--stone-700);border-color:var(--stone-400)}
+.pill.all.active{background:var(--stone-900);border-color:var(--stone-900);color:var(--stone-50)}
+.pill.clear{background:transparent;color:var(--swiss-red);border-color:var(--swiss-red)}
+.pill.clear:hover{background:var(--swiss-red);color:var(--stone-50)}
+
+.notes{columns:1;column-gap:24px}
+@media(min-width:720px){.notes{columns:2;column-gap:22px}}
+@media(min-width:1080px){.notes{columns:3;column-gap:22px}}
+@media(min-width:1440px){.notes{columns:4;column-gap:22px}}
+
+.note{break-inside:avoid;margin:0 0 22px;padding:20px 22px 16px;background:var(--c, var(--stone-100));cursor:pointer;transition:transform .12s ease, box-shadow .12s ease;box-shadow:0 1px 0 rgba(0,0,0,0.04)}
+.note:hover{transform:translateY(-2px);box-shadow:0 6px 16px -8px rgba(0,0,0,0.18)}
+.note .text{font-size:17px;font-weight:400;line-height:1.5;color:var(--stone-900);margin:0;max-width:60ch}
+.note .caption{margin-top:14px;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-700);display:flex;align-items:center;gap:8px;flex-wrap:wrap;opacity:.85}
+.note .caption .dot{color:var(--stone-500);opacity:.5}
+.note .caption .tag-mini{color:var(--stone-700);font-weight:500}
+.note .caption .tag-mini.matched{color:var(--stone-900);text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:3px}
+
+footer.bottom{margin-top:96px;padding-top:24px;border-top:1px solid var(--stone-900);display:flex;justify-content:space-between;font-family:var(--mono);font-size:11px;text-transform:uppercase;letter-spacing:.10em;color:var(--stone-500)}

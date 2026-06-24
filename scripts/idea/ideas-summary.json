@@ -1,0 +1,96 @@
+{
+  "generated_at": "2026-06-01T22:04:26.341170+00:00",
+  "total_notes": 2409,
+  "total_ideas": 1030,
+  "first_idea": "2016-01-15 09:30:14.045000-08:00",
+  "latest_idea": "2026-05-30 12:48:07.014000-07:00",
+  "ideas_per_year": {
+    "2016": 44,
+    "2017": 9,
+    "2018": 17,
+    "2019": 18,
+    "2020": 65,
+    "2021": 21,
+    "2022": 106,
+    "2023": 236,
+    "2024": 178,
+    "2025": 209,
+    "2026": 127
+  },
+  "top_topics": [
+    {
+      "tag": "ai",
+      "count": 302
+    },
+    {
+      "tag": "llm",
+      "count": 154
+    },
+    {
+      "tag": "humor",
+      "count": 57
+    },
+    {
+      "tag": "design",
+      "count": 50
+    },
+    {
+      "tag": "robotics",
+      "count": 50
+    },
+    {
+      "tag": "commerce",
+      "count": 50
+    },
+    {
+      "tag": "ml",
+      "count": 36
+    },
+    {
+      "tag": "hardware",
+      "count": 32
+    },
+    {
+      "tag": "social",
+      "count": 29
+    },
+    {
+      "tag": "health",
+      "count": 29
+    },
+    {
+      "tag": "writing",
+      "count": 23
+    },
+    {
+      "tag": "todo",
+      "count": 17
+    },
+    {
+      "tag": "link",
+      "count": 16
+    },
+    {
+      "tag": "thought",
+      "count": 12
+    },
+    {
+      "tag": "tweet",
+      "count": 11
+    }
+  ],
+  "busiest_month": {
+    "month": "2023-09-01",
+    "count": 52
+  },
+  "streaks": {
+    "longest_streak_days": 8,
+    "streak_start": "2025-03-01",
+    "streak_end": "2025-03-08",
+    "active_days": 526
+  },
+  "outputs": {
+    "png": "/Users/anishthite/workspace/board/scripts/idea/ideas-over-time.png",
+    "html": "/Users/anishthite/workspace/board/scripts/idea/ideas-over-time.html"
+  }
+}
