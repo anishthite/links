@@ -43,8 +43,16 @@ export type Env = {
   SIMILAR_NOTES_MODEL_ID?: string;
   /** Max untagged notes the hourly auto-tagger mutates per run. Default 25, cap 100. */
   AUTO_TAG_LIMIT?: string;
+  /** Max link sources the hourly scrape backfill refreshes per run. Default 5, cap 25. Set 0 to disable. */
+  LINK_BACKFILL_LIMIT?: string;
   /** Optional local timezone for the daily page generator. Defaults to America/Los_Angeles. */
   DAILY_PAGE_TIMEZONE?: string;
+  /** Optional external link scraper fallback. Supported: firecrawl, jina. */
+  LINK_SCRAPER_PROVIDER?: string;
+  /** API key for LINK_SCRAPER_PROVIDER when required or desired for higher limits. */
+  LINK_SCRAPER_API_KEY?: string;
+  /** Override endpoint for self-hosted Firecrawl/Jina-compatible deployments. */
+  LINK_SCRAPER_ENDPOINT?: string;
 
   // Cloudflare Sandbox-backed agent config.
   /** Shared bearer token that lets the sandbox mirror pi JSONL entries back into Board. */

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Links Side Companion</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <p class="eyebrow">Links</p>
+      <h1>Save this tab</h1>
+    </header>
+
+    <form id="save-form">
+      <label>
+        App URL
+        <input id="app-url" type="url" autocomplete="url" spellcheck="false" required>
+      </label>
+
+      <section class="tab-card" aria-labelledby="tab-heading">
+        <div>
+          <p id="tab-heading" class="eyebrow">Current tab</p>
+          <h2 id="tab-title">Loading…</h2>
+        </div>
+        <input id="tab-url" type="url" readonly aria-label="Current tab URL">
+        <button id="refresh-tab" type="button" class="secondary">Refresh tab</button>
+      </section>
+
+      <label>
+        Note <span>(optional)</span>
+        <textarea id="note" rows="4" placeholder="Why save this?"></textarea>
+      </label>
+
+      <label>
+        Tags <span>(comma separated)</span>
+        <input id="tags" type="text" placeholder="reading, ai, tools">
+      </label>
+
+      <button id="save" type="submit">Save link</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </main>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>

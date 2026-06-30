@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — chrome-side-companion</title>
+<meta name="task" content="Add a Chrome side panel extension that saves the current tab into Links.">
+<meta name="date-started" content="2026-06-29">
+<meta name="date-updated" content="2026-06-29">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,chrome-extension,side-panel">
+<meta name="related" content="2026-06-22-links-board-parity.html,2026-06-29-link-create-dedupe.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  h3 { font-size: 13px; margin: 1rem 0 .3rem; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Add Chrome side companion</h1>
+<p class="meta"><code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-29 · status <b>shipped</b> · blast <span class="blast-low">low</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Ship an unpacked Chrome Side Panel extension that posts the active tab URL into Links.</div>
+  <b>Source</b><div><code>chrome.tabs.query()</code> supplies the active tab; <code>chrome.storage.sync</code> stores the app base URL.</div>
+  <b>Surface</b><div><code>extension/sidepanel.html</code> with <code>POST /api/links</code>.</div>
+  <b>Schema</b><div>None.</div>
+  <b>Mobile</b><div>Untouched.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>API contract</h2>
+<h3>Request</h3>
+<pre>POST /api/links
+{ "sourceUrl": "https://example.com/page", "text": "optional note", "tags": ["optional"] }</pre>
+<h3>Response</h3>
+<pre>{ "note": NoteWire, "duplicate"?: true }</pre>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Current tab</b>: show title and URL, reject non-<code>http</code> URLs before fetch.</li>
+  <li><b>Fields</b>: app URL, optional note, optional comma tags.</li>
+  <li><b>Action</b>: save button posts to <code>/api/links</code> and displays created vs duplicate.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>extension/manifest.json</code></td><td>new</td><td>Declare MV3 Side Panel, storage, tabs, and host permissions for production and local Links.</td></tr>
+  <tr><td><code>extension/background.js</code></td><td>new</td><td>Make the toolbar button open the Side Panel.</td></tr>
+  <tr><td><code>extension/sidepanel.html</code></td><td>new</td><td>Render the save-current-tab form.</td></tr>
+  <tr><td><code>extension/sidepanel.js</code></td><td>new</td><td>Wire tab lookup, storage, submit, and status messages.</td></tr>
+  <tr><td><code>extension/shared.js</code></td><td>new</td><td>Keep URL/tag/payload helpers testable without Chrome APIs.</td></tr>
+  <tr><td><code>extension/styles.css</code></td><td>new</td><td>Style the small panel with native controls.</td></tr>
+  <tr><td><code>extension/README.md</code></td><td>new</td><td>Document unpacked loading and local endpoint setup.</td></tr>
+  <tr><td><code>tests/extension-shared.test.ts</code></td><td>new</td><td>Lock the helper behavior used by the panel.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Use Chrome Side Panel over a popup. The user asked for a side companion.</td></tr>
+  <tr><td>D-002</td><td>Call existing <code>/api/links</code>. Avoid a new backend route.</td></tr>
+  <tr><td>D-003</td><td>Ship as an unpacked static extension. No build step or package dependency.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td>Production/local host permissions over <code>&lt;all_urls&gt;</code>. Narrower manifest is enough for this app.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · Default target is <code>https://links.anishthite.workers.dev</code>. If wrong: edit the app URL and add host permission for that origin.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Delete <code>extension/</code>, <code>tests/extension-shared.test.ts</code>, and this index row.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Chrome can load <code>extension/</code> unpacked.</li>
+  <li>Side Panel saves the active <code>http</code>/<code>https</code> tab to <code>/api/links</code>.</li>
+  <li>Duplicate response is shown without creating another note.</li>
+  <li><code>npm test -- tests/extension-shared.test.ts</code> passes.</li>
+  <li><code>npm run typecheck</code> passes.</li>
+</ul>
+</body>
+</html>

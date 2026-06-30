@@ -13,6 +13,7 @@ const MIGRATIONS = [
   path.join(MIGRATIONS_DIR, '0004_ai_arrange_log.sql'),
   path.join(MIGRATIONS_DIR, '0005_agent_sessions.sql'),
   path.join(MIGRATIONS_DIR, '0011_links_metadata.sql'),
+  path.join(MIGRATIONS_DIR, '0012_source_chunks.sql'),
 ];
 
 type Env = { DB: D1Database };
@@ -51,6 +52,16 @@ async function seedLinkExtract(env: Env, sourceContentText: string): Promise<voi
     sourceContentText,
     'ready',
   ).run();
+}
+
+async function seedLinkChunk(env: Env, preview: string, chunk: string): Promise<void> {
+  const now = 1782198326912;
+  await seedLinkExtract(env, preview);
+  await env.DB.prepare(`
+    INSERT INTO note_source_chunks
+      (note_uuid, chunk_index, heading, text, char_start, char_end, created_at)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
+  `).bind('long-link-1', 0, 'deep chunk', chunk, 40000, 40000 + chunk.length, now).run();
 }
 
 let env: Env;
@@ -93,6 +104,20 @@ describe('notes chat routes', () => {
     const text = await res.text();
     expect(text).toContain('needle retrieval passage says chunked evidence should be selected');
     expect(text).not.toContain('front-loaded distractor');
+  });
+
+  it('uses persisted source chunks beyond the note preview', async () => {
+    await seedLinkChunk(
+      env,
+      'visible preview talks about unrelated coffee notes only',
+      'Deep archived evidence says marmalade protocols need citrus zest and slow heat.',
+    );
+
+    const res = await call(env, 'POST', '/api/chat/stream', { message: 'marmalade protocols citrus' });
+    expect(res.status).toBe(200);
+    const text = await res.text();
+    expect(text).toContain('marmalade protocols need citrus zest and slow heat');
+    expect(text).not.toContain('unrelated coffee notes only');
   });
 
   it('returns suggested questions', async () => {

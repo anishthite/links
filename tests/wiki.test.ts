@@ -12,6 +12,7 @@ const MIGRATIONS = [
   path.join(MIGRATIONS_DIR, '0001_initial.sql'),
   path.join(MIGRATIONS_DIR, '0010_wiki_pages.sql'),
   path.join(MIGRATIONS_DIR, '0011_links_metadata.sql'),
+  path.join(MIGRATIONS_DIR, '0012_source_chunks.sql'),
 ];
 
 function env(): Env {

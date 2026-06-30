@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — link-create-dedupe</title>
+<meta name="task" content="Return an existing link note when a duplicate URL is posted.">
+<meta name="date-started" content="2026-06-29">
+<meta name="date-updated" content="2026-06-29">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,api,dedupe">
+<meta name="related" content="2026-06-22-links-board-parity.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  h3 { font-size: 13px; margin: 1rem 0 .3rem; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Return existing notes for duplicate link creates</h1>
+<p class="meta"><code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-29 · status <b>shipped</b> · blast <span class="blast-low">low</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Make <code>POST /api/notes</code> idempotent for normalized <code>sourceUrl</code> creates.</div>
+  <b>Source</b><div><code>normalizeSourceUrl()</code> already strips hashes, tracking params, case drift, and default ports.</div>
+  <b>Surface</b><div><code>POST /api/notes</code> and <code>POST /api/links</code>.</div>
+  <b>Schema</b><div>No migration; keep <code>idx_notes_source_url_normalized</code> non-unique.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>API contract</h2>
+<h3>Request</h3>
+<pre>POST /api/notes
+{ "sourceUrl": "https://example.com/post?utm_source=x#top", "text": "optional", "tags": ["optional"] }</pre>
+<h3>Response — new link</h3>
+<pre>201 Created
+{ "note": NoteWire }</pre>
+<h3>Response — duplicate link</h3>
+<pre>200 OK
+{ "note": NoteWire, "duplicate": true }</pre>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Build the pending link row with <code>buildLinkNoteInsert()</code>.</li>
+  <li>Query <code>notes.source_url_normalized = row.sourceUrlNormalized</code> before insert.</li>
+  <li>Return the newest existing joined note with <code>duplicate: true</code>; do not scrape again.</li>
+  <li>Insert and schedule scrape only when no normalized match exists.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>server/routes/notes.ts</code></td><td>touch</td><td>Short-circuit duplicate link creates before insert and background scrape; skip background jobs when direct tests have no <code>ExecutionContext</code>.</td></tr>
+  <tr><td><code>tests/link-create-dedupe.test.ts</code></td><td>new</td><td>Lock normalized duplicate create as <code>200</code> with one stored note.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Return existing unchanged. Avoid silent text/tag merges on a note the user did not open.</td></tr>
+  <tr><td>D-002</td><td>Use app-level lookup over a unique index. Existing production duplicates could block a unique migration.</td></tr>
+  <tr><td>D-003</td><td>Skip background extraction when <code>ExecutionContext</code> is absent. Direct <code>app.fetch()</code> tests only need the pending DB row.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>200 + duplicate: true</code> over <code>201</code>. Callers can distinguish idempotent return without parsing note age.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Remove the pre-insert lookup and the focused test.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Add a unique partial index after cleaning existing duplicates if concurrent double-submits matter.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Duplicate normalized link returns the first note uuid instead of inserting a second row.</li>
+  <li>New link create still returns <code>201</code> and schedules extraction.</li>
+  <li><code>npm test -- tests/link-create-dedupe.test.ts</code> passes.</li>
+  <li><code>npm run typecheck</code> passes.</li>
+</ul>
+</body>
+</html>

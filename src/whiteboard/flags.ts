@@ -21,6 +21,7 @@ function isVitest(): boolean {
   try {
     const g = globalThis as { __vitest_worker__?: unknown; process?: { env?: Record<string, string | undefined> } };
     if (g.__vitest_worker__) return true;
+    if (typeof navigator !== 'undefined' && navigator.userAgent.includes('jsdom')) return true;
     if (g.process?.env?.VITEST) return true;
     if (g.process?.env?.NODE_ENV === 'test') return true;
     return false;

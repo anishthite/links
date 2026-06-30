@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — newspaper-links-page</title>
+<meta name="task" content="Add a newspaper-style links page with daily and weekly editions.">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,ui,newspaper,edition">
+<meta name="related" content="implementation-notes/2026-06-23-title-only-link-cards.html, implementation-notes/2026-06-22-links-board-parity.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Add links newspaper page</h1>
+<p class="meta">
+  <code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-low">low</span>
+</p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Ship a newspaper-style in-app view for browsing current links.</div>
+  <b>Source</b><div>Reuse the loaded <code>Note[]</code> from <code>GET /api/notes</code>.</div>
+  <b>Surface</b><div>Add <code>paper</code> to the existing board view modes.</div>
+  <b>Schema</b><div>None.</div>
+  <b>Mobile</b><div>Single-column edition stack with compact controls.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Mode button</b>: add a newspaper icon beside the current view controls.</li>
+  <li><b>Edition masthead</b>: show date, count, daily/weekly segmented controls, and expiration rule.</li>
+  <li><b>Lead story</b>: render newest link as the large headline with host, age, preview, and tags.</li>
+  <li><b>Columns</b>: render remaining edition links in editorial columns grouped by priority.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>src/newspaper.ts</code></td><td>new</td><td>Render daily and weekly editions from filtered notes.</td></tr>
+  <tr><td><code>src/board.ts</code></td><td>touch</td><td>Add <code>paper</code> view mode and click delegation.</td></tr>
+  <tr><td><code>src/header.ts</code></td><td>touch</td><td>Add paper mode button and preserve existing view cycle.</td></tr>
+  <tr><td><code>src/main.ts</code></td><td>touch</td><td>Persist and route the new <code>paper</code> view.</td></tr>
+  <tr><td><code>src/styles/board.css</code></td><td>touch</td><td>Style the newspaper masthead, articles, columns, and mobile stack.</td></tr>
+  <tr><td><code>tests/newspaper.test.ts</code></td><td>new</td><td>Cover default weekly edition and daily roll-off.</td></tr>
+  <tr><td><code>implementation-notes/INDEX.html</code></td><td>touch</td><td>Register this task.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Default to <code>weekly</code>. Saved-link volume needs enough density for a newspaper read.</td></tr>
+  <tr><td>D-002</td><td>Keep <code>daily</code> as an in-view toggle. The same renderer supports a tighter morning-paper mode.</td></tr>
+  <tr><td>D-003</td><td>Expire by rolling off the paper, not by deleting rows. Existing board, list, and search remain the permanent archive.</td></tr>
+  <tr><td>D-004</td><td>Let <code>createNewspaperView</code> own article clicks. The renderer already owns edition controls and can ignore source links locally.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>client-side edition</code> over <code>daily_pages</code>. The user asked to see links themselves, not an LLM-generated brief.</td></tr>
+  <tr><td>T-002</td><td><code>7-day rolling weekly</code> over <code>calendar-week only</code>. It avoids an empty Monday edition after a quiet weekend.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · <code>updatedAt</code> is the edition timestamp. If wrong: switch to <code>sourcePublishedAt ?? updatedAt</code>.</li>
+  <li>A-002 · Search and tag filters should narrow the paper. If wrong: render the paper from unfiltered notes.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Remove the new view plumbing, renderer, CSS, and test to restore the previous modes.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Add dated back-issue navigation after the rolling edition proves useful.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Paper view is reachable from the header.</li>
+  <li>Weekly is default and daily is selectable.</li>
+  <li>Expired links leave the paper without deletion.</li>
+  <li><code>npm test -- tests/newspaper.test.ts</code>, <code>npm run typecheck</code>, and <code>npm run build</code> pass.</li>
+  <li>Browser smoke confirms <code>?view=paper&amp;perf=20</code> renders weekly, toggles daily, and avoids checked text overflow.</li>
+</ul>
+</body>
+</html>

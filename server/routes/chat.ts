@@ -1,6 +1,6 @@
 import { Hono, type Context } from 'hono';
 import { streamSSE } from 'hono/streaming';
-import { desc } from 'drizzle-orm';
+import { asc, desc } from 'drizzle-orm';
 import { generateText, streamText } from 'ai';
 import { createAmazonBedrock } from '@ai-sdk/amazon-bedrock';
 
@@ -37,6 +37,7 @@ type SourceNote = {
   sourceDescription?: string | null;
   sourceSiteName?: string | null;
   sourceContentText?: string | null;
+  sourceChunks?: string[];
 };
 type ChatEvent =
   | { type: 'status'; message: string }
@@ -75,6 +76,12 @@ chatRoutes.post('/stream', async (c) => {
         .from(schema.notes)
         .orderBy(desc(schema.notes.updatedAt))
         .all();
+      const chunkRows = await db(c.env.DB)
+        .select()
+        .from(schema.noteSourceChunks)
+        .orderBy(asc(schema.noteSourceChunks.noteUuid), asc(schema.noteSourceChunks.chunkIndex))
+        .all();
+      const chunksByNote = groupChunksByNote(chunkRows);
       await emit({ type: 'status', message: `scanned ${rows.length} links` });
 
       const notes = rows.map((row) => ({
@@ -88,6 +95,7 @@ chatRoutes.post('/stream', async (c) => {
         sourceDescription: row.sourceDescription,
         sourceSiteName: row.sourceSiteName,
         sourceContentText: row.sourceContentText,
+        sourceChunks: chunksByNote.get(row.uuid),
       }));
       const sources = rankNotes(notes, [message, ...history.map((m) => m.content)], topK);
       await emit({ type: 'sources', notes: sources });
@@ -206,7 +214,7 @@ function rankNotes(notes: SourceNote[], queryParts: string[], topK: number): Sou
 
 function scoreNote(note: SourceNote, fullQuery: string, terms: string[]): { note: SourceNote; score: number } {
   const metaScore = scoreNoteMetadata(note, fullQuery, terms);
-  const chunks = sourceChunks(note.sourceContentText || '');
+  const chunks = sourceChunksForNote(note);
   let bestChunk = chunks[0] || '';
   let bestChunkScore = 0;
   for (const chunk of chunks) {
@@ -221,8 +229,23 @@ function scoreNote(note: SourceNote, fullQuery: string, terms: string[]): { note
 }
 
 function withPromptChunk(note: SourceNote): SourceNote {
-  const chunk = sourceChunks(note.sourceContentText || '')[0];
+  const chunk = sourceChunksForNote(note)[0];
   return chunk ? { ...note, sourceContentText: chunk } : note;
+}
+
+function sourceChunksForNote(note: SourceNote): string[] {
+  const persisted = note.sourceChunks?.map((chunk) => chunk.trim()).filter(Boolean) || [];
+  return persisted.length > 0 ? persisted.slice(0, CHAT_MAX_CHUNKS_PER_NOTE) : sourceChunks(note.sourceContentText || '');
+}
+
+function groupChunksByNote(rows: Array<{ noteUuid: string; text: string }>): Map<string, string[]> {
+  const out = new Map<string, string[]>();
+  for (const row of rows) {
+    const chunks = out.get(row.noteUuid) || [];
+    chunks.push(row.text);
+    out.set(row.noteUuid, chunks);
+  }
+  return out;
 }
 
 function scoreNoteMetadata(note: SourceNote, fullQuery: string, terms: string[]): number {

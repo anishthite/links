@@ -25,6 +25,7 @@ const MIGRATIONS = [
   path.join(MIGRATIONS_DIR, '0007_agent_pi_entries.sql'),
   path.join(MIGRATIONS_DIR, '0008_agent_secrets.sql'),
   path.join(MIGRATIONS_DIR, '0011_links_metadata.sql'),
+  path.join(MIGRATIONS_DIR, '0012_source_chunks.sql'),
 ];
 
 async function call(env: Env, method: string, reqPath: string, body?: unknown, origin = 'http://test.local'): Promise<Response> {

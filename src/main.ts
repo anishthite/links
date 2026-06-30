@@ -10,12 +10,14 @@
 
 import './styles/globals.css';
 import './styles/board.css';
+import './styles/resurface.css';
 
 import { attachWindowListeners, createBoard } from './board';
 import { createHeader, type BoardView } from './header';
 import { createAgentView } from './agent-view';
 import { createNote, deleteNote, findSimilarNotes, getNotes, isFallback, refreshLinkSource, updateNote } from './lib/api';
 import { createNoteEditor } from './note-editor';
+import { renderResurfacePage } from './resurface-page';
 import { uniqueTagsFromNotes } from './lib/tags';
 import type { Note } from './lib/types';
 
@@ -36,8 +38,7 @@ function perfQueryCount(): number | null {
 function perfQueryView(): BoardView | null {
   try {
     const v = new URLSearchParams(window.location.search).get('view');
-    if (v === 'whiteboard' || v === 'masonry' || v === 'list' || v === 'agent') return v;
-    return null;
+    return normalizeView(v);
   } catch { return null; }
 }
 function synthPerfNotes(n: number): Note[] {
@@ -89,10 +90,25 @@ function synthPerfNotes(n: number): Note[] {
 // 'whiteboard' added 2026-06-06 (see PLAN-whiteboard.md), hidden from normal
 // navigation 2026-06-16: stale saved values fall back to masonry.
 const VIEW_STORAGE_KEY = 'boardView';
+function normalizeView(view: string | null): BoardView | null {
+  if (view === 'whiteboard' || view === 'masonry' || view === 'list' || view === 'paper' || view === 'agent') return view;
+  return null;
+}
+function requestedInitialView(): BoardView | null {
+  try {
+    const fromQuery = normalizeView(new URLSearchParams(window.location.search).get('view'));
+    if (fromQuery) return fromQuery;
+    return null;
+  } catch {
+    return null;
+  }
+}
 function loadInitialView(): BoardView {
   try {
+    const requested = requestedInitialView();
+    if (requested) return requested;
     const v = localStorage.getItem(VIEW_STORAGE_KEY);
-    if (v === 'list' || v === 'agent') return v;
+    if (v === 'list' || v === 'paper' || v === 'agent') return v;
     return 'masonry';
   } catch {
     return 'masonry';
@@ -103,9 +119,10 @@ function applyViewBodyClass(view: BoardView) {
   body.classList.toggle('view-whiteboard', view === 'whiteboard');
   body.classList.toggle('view-masonry', view === 'masonry');
   body.classList.toggle('view-list', view === 'list');
+  body.classList.toggle('view-paper', view === 'paper');
   body.classList.toggle('view-agent', view === 'agent');
 }
-function toBoardView(view: BoardView): 'masonry' | 'list' | 'whiteboard' {
+function toBoardView(view: BoardView): 'masonry' | 'list' | 'whiteboard' | 'paper' {
   return view === 'agent' ? 'masonry' : view;
 }
 
@@ -127,6 +144,11 @@ function persistShowSuggestions(show: boolean) {
 async function main() {
   const root = document.getElementById('app');
   if (!root) throw new Error('#app not found');
+
+  if (isResurfaceRoute()) {
+    await renderResurfacePage(root, { loadNotes: getNotes, isFallback });
+    return;
+  }
 
   const main = document.createElement('main');
   main.className = 'board';
@@ -244,6 +266,9 @@ async function main() {
       const note = board.getNotes().find((entry) => entry.uuid === uuid);
       if (note) editor.open(note);
     },
+    onOpenResurface: () => {
+      window.location.assign('/resurface');
+    },
     initialView,
     initialShowSuggestions,
   });
@@ -311,6 +336,23 @@ async function main() {
   modeEl.textContent = isFallback() ? 'local · sample data' : 'connected · d1';
 
   attachWindowListeners(board);
+}
+
+function isResurfaceRoute(): boolean {
+  try {
+    const url = new URL(window.location.href);
+    const path = url.pathname.replace(/\/+$/, '') || '/';
+    const page = url.searchParams.get('page');
+    const view = url.searchParams.get('view');
+    return path === '/resurface'
+      || path === '/read'
+      || path === '/random'
+      || page === 'resurface'
+      || page === 'read'
+      || view === 'read';
+  } catch {
+    return false;
+  }
 }
 
 main().catch(err => {

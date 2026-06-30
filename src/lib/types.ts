@@ -34,8 +34,13 @@ export type Note = {
   sourceFetchedAt?: number | null;
   sourceContentText?: string | null;
   sourceContentMarkdown?: string | null;
-  sourceStatus?: 'ready' | 'failed' | null;
+  sourceStatus?: 'pending' | 'ready' | 'failed' | null;
   sourceLastError?: string | null;
+  sourceFinalUrl?: string | null;
+  sourceExtractor?: string | null;
+  sourceStatusCode?: number | null;
+  sourceContentLength?: number | null;
+  sourceContentTruncated?: boolean | null;
   /** Optional: only present when an unaccepted med/low suggestion exists. */
   pendingSuggestion?: PendingSuggestion;
   /** Board-space coordinates (top-left of the note) for the whiteboard view.

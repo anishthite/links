@@ -34,12 +34,32 @@ export const notes = sqliteTable('notes', {
   sourceFetchedAt: integer('source_fetched_at', { mode: 'number' }),
   sourceContentText: text('source_content_text'),
   sourceContentMarkdown: text('source_content_markdown'),
-  sourceStatus: text('source_status', { enum: ['ready', 'failed'] }),
+  sourceStatus: text('source_status', { enum: ['pending', 'ready', 'failed'] }),
   sourceLastError: text('source_last_error'),
+  sourceFinalUrl: text('source_final_url'),
+  sourceExtractor: text('source_extractor'),
+  sourceStatusCode: integer('source_status_code', { mode: 'number' }),
+  sourceContentLength: integer('source_content_length', { mode: 'number' }),
+  sourceContentTruncated: integer('source_content_truncated', { mode: 'boolean' }),
 });
 
 export type NoteRow = typeof notes.$inferSelect;
 export type InsertNoteRow = typeof notes.$inferInsert;
+
+export const noteSourceChunks = sqliteTable('note_source_chunks', {
+  noteUuid: text('note_uuid').notNull().references(() => notes.uuid, { onDelete: 'cascade' }),
+  chunkIndex: integer('chunk_index').notNull(),
+  heading: text('heading'),
+  text: text('text').notNull(),
+  charStart: integer('char_start', { mode: 'number' }).notNull(),
+  charEnd: integer('char_end', { mode: 'number' }).notNull(),
+  createdAt: integer('created_at', { mode: 'number' }).notNull(),
+}, (table) => ({
+  pk: primaryKey({ columns: [table.noteUuid, table.chunkIndex] }),
+}));
+
+export type NoteSourceChunkRow = typeof noteSourceChunks.$inferSelect;
+export type InsertNoteSourceChunkRow = typeof noteSourceChunks.$inferInsert;
 
 // Persistent classifier suggestions (Phase-5 backfill + on-create steady-state).
 // One row per note that has a pending or accepted suggestion. uuid joins `notes`.

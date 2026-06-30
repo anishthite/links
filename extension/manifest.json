@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Links Side Companion",
+  "version": "0.1.0",
+  "description": "Save the current tab to Links from Chrome's side panel.",
+  "minimum_chrome_version": "116",
+  "permissions": ["sidePanel", "storage", "tabs"],
+  "host_permissions": [
+    "https://links.anishthite.workers.dev/*",
+    "http://127.0.0.1:8788/*"
+  ],
+  "action": {
+    "default_title": "Save to Links"
+  },
+  "side_panel": {
+    "default_path": "sidepanel.html"
+  },
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  }
+}

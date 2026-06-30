@@ -25,6 +25,7 @@ const MIGRATIONS = [
   path.join(MIGRATIONS_DIR, '0003_tags_standalone.sql'),
   path.join(MIGRATIONS_DIR, '0004_ai_arrange_log.sql'),
   path.join(MIGRATIONS_DIR, '0011_links_metadata.sql'),
+  path.join(MIGRATIONS_DIR, '0012_source_chunks.sql'),
 ];
 
 type Env = { DB: D1Database };

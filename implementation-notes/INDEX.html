@@ -10,7 +10,7 @@
   th { background: #f6f6f6; position: sticky; top: 0; }
   tr.superseded td { text-decoration: line-through; color: #888; }
   .blast-high { color: #b00020; font-weight: 600; } .blast-med { color: #b85c00; } .blast-low { color: #2a7a2a; }
-  .status-in-progress { color: #b85c00; } .status-shipped { color: #2a7a2a; } .status-blocked { color: #b00020; }
+  .status-in-progress { color: #b85c00; } .status-shipped { color: #2a7a2a; } .status-blocked { color: #b00020; } .status-superseded { color: #888; }
   a { color: #1a5fb4; text-decoration: none; } a:hover { text-decoration: underline; }
 </style>
 </head>
@@ -20,6 +20,70 @@
 <table>
   <thead><tr><th>Date</th><th>Task</th><th>Status</th><th>Blast</th><th>Tags</th><th>Summary</th></tr></thead>
   <tbody>
+    <tr>
+      <td>2026-06-29</td>
+      <td><a href="2026-06-29-chrome-side-companion.html">Add Chrome side companion</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,chrome-extension,side-panel</td>
+      <td>Add an unpacked Chrome Side Panel extension that saves the current tab to <code>/api/links</code>.</td>
+    </tr>
+    <tr>
+      <td>2026-06-29</td>
+      <td><a href="2026-06-29-link-create-dedupe.html">Return existing notes for duplicate link creates</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,api,dedupe</td>
+      <td>Make link-note creation idempotent for normalized URLs without a schema migration.</td>
+    </tr>
+    <tr>
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-link-scrape-backfill.html">Add link scrape backfill</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,scraping,backfill,cron</td>
+      <td>Fill missing scrape fields and chunks from hourly cron and a manual endpoint.</td>
+    </tr>
+    <tr>
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-replace-random-reader-with-resurfacing.html">Replace random reader with resurfacing</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,ui,reader,resurfacing</td>
+      <td>Make the former random-reader button and legacy read URLs open smart resurfacing.</td>
+    </tr>
+    <tr>
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-readable-async-link-scraping.html">Improve async link scraping</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,scraping,readability,d1,chunks</td>
+      <td>Add Readability-first extraction, optional external scraper fallback, persisted chunks, and async link ingest.</td>
+    </tr>
+    <tr class="superseded">
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-random-reader-view.html">Add random reader view</a></td>
+      <td class="status-superseded">superseded</td>
+      <td class="blast-low">low</td>
+      <td>links,ui,reader,random</td>
+      <td>Superseded by <code>2026-06-24-replace-random-reader-with-resurfacing.html</code>.</td>
+    </tr>
+    <tr>
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-newspaper-links-page.html">Add links newspaper page</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-low">low</td>
+      <td>links,ui,newspaper,edition</td>
+      <td>Add a weekly-default paper view that lets links roll off the front page without deleting them.</td>
+    </tr>
+    <tr>
+      <td>2026-06-24</td>
+      <td><a href="2026-06-24-resurfacing-trails-side-page.html">Add resurfacing and link-trails side page</a></td>
+      <td class="status-shipped">shipped</td>
+      <td class="blast-med">medium</td>
+      <td>links,resurfacing,trails,ui</td>
+      <td>Build and deploy an additive side page that ranks old high-signal links, refreshes variants, and assembles reading paths.</td>
+    </tr>
     <tr>
       <td>2026-06-23</td>
       <td><a href="2026-06-23-real-auto-tags.html">Write auto-tags as real tags</a></td>

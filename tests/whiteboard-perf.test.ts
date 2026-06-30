@@ -73,6 +73,7 @@ function makeNotes(n: number): Note[] {
 type WhiteboardHandle = ReturnType<typeof createWhiteboard>;
 
 function mount(notes: Note[]): { wb: WhiteboardHandle; container: HTMLElement } {
+  localStorage.removeItem('whiteboardCamera');
   const byUuid = new Map(notes.map((n) => [n.uuid, n]));
 
   const wb = createWhiteboard({

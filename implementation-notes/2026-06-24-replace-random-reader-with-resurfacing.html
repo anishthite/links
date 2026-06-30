@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — replace-random-reader-with-resurfacing</title>
+<meta name="task" content="Replace the random reader entry points with smart resurfacing.">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,ui,reader,resurfacing">
+<meta name="related" content="2026-06-24-random-reader-view.html,2026-06-24-resurfacing-trails-side-page.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font: 12.5px ui-monospace, Menlo, monospace; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Replace Random Reader With Resurfacing</h1>
+<p class="meta">
+  <code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-med">medium</span>
+</p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Make the former random-reader button and URLs open smart resurfacing.</div>
+  <b>Source</b><div>Reuse existing <code>renderResurfacePage()</code> and <code>GET /api/notes</code>.</div>
+  <b>Surface</b><div><code>/resurface</code> canonical; <code>/read</code>, <code>/random</code>, and stale <code>?view=read</code> alias to resurfacing.</div>
+  <b>Schema</b><div>None.</div>
+  <b>Mobile</b><div>Use existing resurfacing responsive layout.</div>
+  <b>Deploy</b><div>Worker deployed with <code>npx wrangler deploy --keep-vars --containers-rollout=none</code>; current version <code>0fbaba6e-947e-4d00-9262-6e378252df36</code>.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Header</b>: keep the book-slot icon but label it <code>smart resurfacing</code> and navigate to <code>/resurface</code>.</li>
+  <li><b>Old paths</b>: redirect <code>/read</code> and <code>/random</code> to <code>/resurface</code> at the Worker edge.</li>
+  <li><b>Stale SPA state</b>: ignore persisted <code>boardView=read</code> and render resurfacing for <code>?view=read</code>.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>src/main.ts</code></td><td>touch</td><td>Remove read-mode boot and map old read routes to resurfacing.</td></tr>
+  <tr><td><code>src/header.ts</code></td><td>touch</td><td>Replace random-reader button behavior with resurfacing navigation.</td></tr>
+  <tr><td><code>worker/index.ts</code></td><td>touch</td><td>Redirect <code>/read</code> and <code>/random</code> to <code>/resurface</code>.</td></tr>
+  <tr><td><code>src/styles/board.css</code></td><td>touch</td><td>Remove dead random-reader styles.</td></tr>
+  <tr><td><code>src/random-reader.ts</code></td><td>delete</td><td>Remove obsolete single-link random picker.</td></tr>
+  <tr><td><code>tests/random-reader.test.ts</code></td><td>delete</td><td>Remove tests for deleted behavior.</td></tr>
+  <tr><td><code>tests/header-resurface.test.ts</code></td><td>new</td><td>Cover the header resurfacing hook.</td></tr>
+  <tr><td><code>tests/worker-spa-routes.test.ts</code></td><td>new</td><td>Cover legacy route redirects and canonical SPA serving.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Use <code>/resurface</code> as canonical. One reading surface keeps navigation legible.</td></tr>
+  <tr><td>D-002</td><td>Redirect old Worker paths. Bookmarks land on the replacement instead of duplicating route logic.</td></tr>
+  <tr><td>D-003</td><td>Delete the random reader module. Hidden dead UI would preserve an obsolete maintenance path.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>302 redirect</code> over serving resurfacing at every path. Canonical URLs stay simple.</td></tr>
+  <tr><td>T-002</td><td><code>smart resurfacing</code> button label over <code>read random link</code>. The action now opens a ranked briefing.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · Existing users prefer old <code>/read</code> links to resolve to resurfacing. If wrong: restore a separate route alias.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Re-add <code>src/random-reader.ts</code>, restore read-mode branches, and revert the route redirects.</p>
+<p>R-002 · <span class="blast-med">medium</span>. Redeploy the previous Worker version if production navigation regresses.</p>
+
+<h2>Verification</h2>
+<ul>
+  <li><code>npm run typecheck</code> passed.</li>
+  <li><code>npx vitest run tests/header-resurface.test.ts tests/worker-spa-routes.test.ts tests/resurface-page.test.ts</code> passed: 7 tests.</li>
+  <li><code>npm test</code> passed: 31 files, 206 tests.</li>
+  <li><code>npm run build</code> passed.</li>
+  <li>Local <code>/read</code> and <code>/random</code> returned <code>302</code> to <code>/resurface</code>.</li>
+  <li>Production <code>/read</code> and <code>/random</code> returned <code>302</code> to <code>/resurface</code>.</li>
+  <li>Production <code>/resurface</code> returned <code>200 text/html</code>.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Header book-slot control opens <code>/resurface</code>.</li>
+  <li><code>/read</code> and <code>/random</code> redirect to <code>/resurface</code>.</li>
+  <li>No runtime import or CSS selector remains for <code>random-reader</code>.</li>
+  <li><code>npm run typecheck</code>, targeted tests, and <code>npm run build</code> pass.</li>
+</ul>
+
+</body>
+</html>

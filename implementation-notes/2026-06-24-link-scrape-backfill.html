@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — link-scrape-backfill</title>
+<meta name="task" content="Add a recurring/manual backfill for links missing scrape fields or chunks.">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,scraping,backfill,cron">
+<meta name="related" content="2026-06-24-readable-async-link-scraping.html,2026-06-23-youtube-transcript-backfill.html,2026-06-23-link-autotagger-service.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Add link scrape backfill</h1>
+<p class="meta"><code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-med">medium</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Fill missing scrape fields and chunks for existing link-backed notes.</div>
+  <b>Source</b><div><code>notes.source_url</code> rows missing ready metadata, content, telemetry, or <code>note_source_chunks</code>.</div>
+  <b>Surface</b><div>Hourly Worker cron plus <code>POST /api/notes/backfill-link-sources</code>.</div>
+  <b>Schema</b><div>None.</div>
+  <b>Mobile</b><div>Untouched.</div>
+  <b>Open Qs</b><div>0.</div>
+  <b>Eval</b><div><code>npm test -- tests/link-backfill.test.ts</code>, <code>npm run typecheck</code>, <code>npm test</code>, <code>npm run build</code>, and <code>npx wrangler deploy --dry-run --outdir /tmp/links-worker-dry-run --containers-rollout=none</code> pass.</div>
+</div>
+
+<h2>API contract</h2>
+<pre>POST /api/notes/backfill-link-sources
+{
+  limit?: number
+}
+
+{
+  considered: number,
+  refreshed: number,
+  failed: number,
+  skipped: number,
+  limit: number,
+  uuids: string[]
+}</pre>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Select link-backed notes with <code>source_status</code> missing/pending/failed, empty content, missing telemetry, or no chunk rows.</li>
+  <li>Throttle pending rows until five minutes old and failed rows until twenty-four hours old.</li>
+  <li>Build chunks from existing preview text when only chunk rows are missing.</li>
+  <li>Refresh each selected weak source through the existing scraper and replace chunks.</li>
+  <li>Run at most <code>LINK_BACKFILL_LIMIT</code> rows per cron tick.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>server/lib/link-backfill.ts</code></td><td>new</td><td>Own candidate selection, throttling, refresh, and result accounting.</td></tr>
+  <tr><td><code>server/routes/notes.ts</code></td><td>touch</td><td>Add authenticated manual backfill endpoint.</td></tr>
+  <tr><td><code>worker/index.ts</code></td><td>touch</td><td>Run scrape backfill from the existing hourly cron.</td></tr>
+  <tr><td><code>server/env.ts</code></td><td>touch</td><td>Add <code>LINK_BACKFILL_LIMIT</code>.</td></tr>
+  <tr><td><code>README.md</code></td><td>touch</td><td>Document the backfill limit and manual endpoint.</td></tr>
+  <tr><td><code>tests/link-backfill.test.ts</code></td><td>new</td><td>Cover candidate selection, refresh writes, chunks, and limit behavior.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Reuse the hourly cron. No new scheduler surface.</td></tr>
+  <tr><td>D-002</td><td>Default to <code>5</code> links per tick. Caps external fetch cost and Worker duration.</td></tr>
+  <tr><td>D-003</td><td>Expose a manual endpoint. Lets the user fill missing rows immediately after migrations.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>batch refresh</code> over full corpus sweep. Avoids hammering external sites.</td></tr>
+  <tr><td>T-002</td><td><code>retry failed daily</code> over never retry. Handles transient blocks without hourly churn.</td></tr>
+</table>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert the cron call, route, and service; already-backfilled note/chunk data remains compatible.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>Cron backfills missing scrape data in bounded batches.</li>
+  <li>Manual endpoint returns useful accounting.</li>
+  <li>Tests cover missing chunks and limits.</li>
+  <li><code>npm test -- tests/link-backfill.test.ts</code>, <code>npm run typecheck</code>, <code>npm test</code>, <code>npm run build</code>, and Wrangler dry-run pass.</li>
+</ul>
+
+</body>
+</html>

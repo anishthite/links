@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — readable-async-link-scraping</title>
+<meta name="task" content="Improve link scraping with Readability extraction, persisted chunks, and async ingest.">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,scraping,readability,d1,chunks">
+<meta name="related" content="2026-06-22-links-mvp.html,2026-06-22-links-board-parity.html,2026-06-23-chunked-chat-retrieval.html,2026-06-23-youtube-transcript-ingest.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  h3 { font-size: 13px; margin: 1rem 0 .3rem; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Improve async link scraping</h1>
+<p class="meta"><code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-med">medium</span></p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Save cleaner and longer link text without blocking note creation.</div>
+  <b>Source</b><div><code>@mozilla/readability</code> local extraction first, optional <code>LINK_SCRAPER_PROVIDER</code> external fallback.</div>
+  <b>Surface</b><div><code>POST /api/notes</code>, <code>POST /api/notes/:uuid/refresh-link</code>, <code>GET /api/notes</code>.</div>
+  <b>Schema</b><div>Add extraction telemetry columns on <code>notes</code> and new <code>note_source_chunks</code> table.</div>
+  <b>Mobile</b><div>Untouched.</div>
+  <b>Open Qs</b><div>0.</div>
+  <b>Eval</b><div><code>npm test</code>, <code>npm run typecheck</code>, <code>npm run build</code>, and <code>npx wrangler deploy --dry-run --outdir /tmp/links-worker-dry-run --containers-rollout=none</code> pass.</div>
+</div>
+
+<h2>API contract</h2>
+<h3>Request</h3>
+<pre>POST /api/notes
+{
+  text?: string,
+  tags?: string[],
+  sourceUrl?: string
+}</pre>
+<h3>Response — link-backed note</h3>
+<pre>{
+  note: {
+    uuid: string,
+    sourceUrl: string,
+    sourceStatus: "pending" | "ready" | "failed",
+    sourceExtractor: string | null,
+    sourceContentLength: number | null,
+    sourceContentTruncated: 0 | 1 | null
+  }
+}</pre>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Create a pending row with normalized URL, user text, tags, and host fallback metadata.</li>
+  <li>Run extraction in <code>ExecutionContext.waitUntil</code>; tests can call the scraper directly.</li>
+  <li>Try YouTube transcript, then local Readability, then optional external scraper, then old body-strip fallback.</li>
+  <li>Store note preview text plus telemetry on <code>notes</code>; store full-ish text windows in <code>note_source_chunks</code>.</li>
+  <li>Mark <code>source_content_truncated = 1</code> when the extract exceeds the stored preview cap.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>package.json</code></td><td>touch</td><td>Add Readability, DOM, and Markdown conversion dependencies.</td></tr>
+  <tr><td><code>db/migrations/0012_source_chunks.sql</code></td><td>new</td><td>Add extraction telemetry and persisted source chunks.</td></tr>
+  <tr><td><code>db/schema.ts</code></td><td>touch</td><td>Expose new note columns and <code>note_source_chunks</code>.</td></tr>
+  <tr><td><code>server/env.ts</code></td><td>touch</td><td>Add optional external scraper configuration.</td></tr>
+  <tr><td><code>server/lib/link-source.ts</code></td><td>touch</td><td>Split pending row creation from extraction and persist chunks.</td></tr>
+  <tr><td><code>server/routes/notes.ts</code></td><td>touch</td><td>Schedule background extraction on create and rebuild chunks on refresh.</td></tr>
+  <tr><td><code>tests/link-source.test.ts</code></td><td>touch</td><td>Cover Readability extraction, chunk persistence, and pending creates.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Keep local Readability as default. Avoid paid external dependency for ordinary pages.</td></tr>
+  <tr><td>D-002</td><td>Make external scraper opt-in through env. Secrets and per-request costs stay off the default path.</td></tr>
+  <tr><td>D-003</td><td>Keep a capped preview in <code>notes.source_content_text</code>. Existing UI and chat paths keep working while chunks carry longer extracts.</td></tr>
+  <tr><td>D-004</td><td>Use <code>waitUntil</code> over Cloudflare Queues. The app needs one-shot background work, not a durable queue yet.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>note_source_chunks</code> over raising <code>source_content_text</code> indefinitely. Avoids bloating every list response.</td></tr>
+  <tr><td>T-002</td><td><code>Readability + fallback</code> over browser rendering. Captures most articles without container latency.</td></tr>
+  <tr><td>T-003</td><td><code>Firecrawl/Jina adapter</code> over SDK dependency. Worker code only needs one HTTP call.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · Most saved links are public article-like pages. If wrong: enable <code>LINK_SCRAPER_PROVIDER</code> for browser-grade extraction.</li>
+  <li>A-002 · A stale pending note is acceptable when background extraction fails. If wrong: add retry cron over <code>source_status = 'pending'</code>.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-med">medium</span>. Revert route/extractor code and ignore additive schema columns/table; old rows remain readable.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Backfill chunks for existing long extracts after the migration lands in production.</li>
+  <li>L-002 · Promote external scraper fallback after measuring failure domains in saved links.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li>New link notes return immediately with <code>source_status = 'pending'</code>.</li>
+  <li>Background extraction updates source metadata and writes chunks.</li>
+  <li>Refresh rebuilds source metadata and chunks synchronously.</li>
+  <li><code>npm test -- tests/link-source.test.ts</code> and <code>npm run typecheck</code> pass.</li>
+</ul>
+
+</body>
+</html>

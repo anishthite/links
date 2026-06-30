@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — Resurfacing Trails Side Page</title>
+<meta name="task" content="Add an experimental side page for smart resurfacing and link trails">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="medium">
+<meta name="tags" content="links,resurfacing,trails,ui">
+<meta name="related" content="2026-06-23-chunked-chat-retrieval.html,2026-06-23-title-only-link-cards.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  h3 { font-size: 13px; margin: 1rem 0 .3rem; color: #444; text-transform: uppercase; letter-spacing: .04em; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  pre { background: #f6f6f6; padding: .55rem .7rem; border-radius: 4px; overflow-x: auto; font-size: 12.5px; line-height: 1.4; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; } .blast-med { color: #b85c00; } .blast-high { color: #b00020; font-weight: 600; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+
+<h1>Resurfacing Trails Side Page</h1>
+<p class="meta">
+  <code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-med">medium</span>
+</p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Ship and deploy a side page that picks three old links to revisit, supports refresh variants, and builds related-link trails.</div>
+  <b>Source</b><div><code>GET /api/notes</code> via existing <code>getNotes()</code>, with sample-data fallback unchanged.</div>
+  <b>Surface</b><div><code>/resurface</code> and <code>?page=resurface</code> render the experiment; <code>/</code> stays the board.</div>
+  <b>Schema</b><div>No resurfacing-owned schema. Production deploy also required applying current source-chunks migration <code>0012_source_chunks.sql</code> because shared note reads now project those fields.</div>
+  <b>Mobile</b><div>Responsive single-column layout under <code>860px</code>.</div>
+  <b>Deploy</b><div>Remote D1 migration applied, then Worker deployed with <code>npx wrangler deploy --keep-vars --containers-rollout=none</code>; current version <code>5c5209e3-5a3a-4eb8-9e5b-6d8c7eca9ce0</code>.</div>
+</div>
+
+<h2>Algorithm</h2>
+<ol>
+  <li>Prefer link-backed notes with at least one display title or source URL; fall back to ordinary notes when sparse.</li>
+  <li>Score resurfacing with <code>score = ageDays*1.2 + contentSignal + tagSignal + hostSignal - touchedPenalty</code>, where <code>ageDays</code> uses the oldest valid source/created/updated timestamp.</li>
+  <li>Build trails by picking seed notes with enough term/tag overlap, then append nearest related notes until each trail has three steps and skip reused seeds.</li>
+  <li>Refresh by refetching notes and rotating within the top <code>18</code> ranked candidates by <code>offset = variant*3 % pool.length</code>.</li>
+  <li>Explain each card with visible factors: age, host, tags, extract length, and shared terms.</li>
+</ol>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Briefing header</b>: page title, corpus count, and a board-return link.</li>
+  <li><b>Refresh control</b>: top-bar action advances the ranked-pool variant and refetches notes.</li>
+  <li><b>Resurface rail</b>: three ranked links with rationale, tags, and source actions.</li>
+  <li><b>Trail section</b>: ordered paths with numbered steps, connector rules, and shared-topic labels.</li>
+  <li><b>Debug strip</b>: compact signal chips expose why the deterministic picks happened.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>src/resurface-page.ts</code></td><td>new</td><td>Compute deterministic resurfacing picks, refresh variants, and link trails from loaded notes.</td></tr>
+  <tr><td><code>src/styles/resurface.css</code></td><td>new</td><td>Style the side page and refresh control as a dense morning-briefing surface.</td></tr>
+  <tr><td><code>src/main.ts</code></td><td>touch</td><td>Route <code>/resurface</code> and <code>?page=resurface</code> before board boot.</td></tr>
+  <tr><td><code>worker/index.ts</code></td><td>touch</td><td>Serve <code>index.html</code> for direct <code>/resurface</code> page loads.</td></tr>
+  <tr><td><code>tests/resurface-page.test.ts</code></td><td>new</td><td>Cover ranking and trail construction.</td></tr>
+  <tr><td><code>implementation-notes/INDEX.html</code></td><td>touch</td><td>Index this task.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Use existing <code>getNotes()</code>. The experiment needs no write path or schema.</td></tr>
+  <tr><td>D-002</td><td>Render as a side page. The board keeps its default first-screen behavior.</td></tr>
+  <tr><td>D-003</td><td>Use deterministic local scoring. The first pass stays inspectable and testable without model latency.</td></tr>
+  <tr><td>D-004</td><td>Fall back from source notes to ordinary notes. <code>vite</code>-only dev has no link-backed sample data.</td></tr>
+  <tr><td>D-005</td><td>Refresh rotates the high-signal pool. Refetch-only would return the same deterministic list.</td></tr>
+  <tr><td>D-006</td><td>Deploy the Worker without container rollout. Docker was unavailable locally and this UI/API change does not require updating <code>links-sandbox</code>.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>/resurface</code> route over a new header mode. Side-page routing avoids disturbing saved board view state.</td></tr>
+  <tr><td>T-002</td><td>Lexical/tag overlap over embeddings. Current client has full note extracts but no runtime vector index.</td></tr>
+  <tr><td>T-003</td><td>Variant rotation over random shuffle. Refresh stays biased toward high-signal candidates.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · <code>updatedAt</code> is a usable forgottenness proxy. If wrong: later add read/open telemetry.</li>
+  <li>A-002 · Longer extracted content often means higher revisit value. If wrong: tune the signal weights.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Remove the route branch, new page module, and CSS import.</p>
+<p>R-002 · <span class="blast-med">medium</span>. Redeploy the previous Worker if production behavior regresses.</p>
+
+<h2>Followups</h2>
+<ul>
+  <li>L-001 · Add persisted open/read events before calling picks truly forgotten.</li>
+  <li>L-002 · Add an LLM trail-title pass if the deterministic labels feel too literal.</li>
+</ul>
+
+<h2>Verification</h2>
+<ul>
+  <li><code>npm run typecheck</code> passed.</li>
+  <li><code>npm test</code> passed: 30 files, 206 tests.</li>
+  <li><code>npm run build</code> passed.</li>
+  <li>Local D1 migration <code>0012_source_chunks.sql</code> applied successfully.</li>
+  <li>Remote D1 migration <code>0012_source_chunks.sql</code> applied successfully.</li>
+  <li>Production <code>/resurface</code> returned <code>200 text/html</code>.</li>
+  <li>Production <code>/api/notes</code> returned <code>200 application/json</code> with 456 notes and source fields.</li>
+</ul>
+
+<h2>Definition of done</h2>
+<ul>
+  <li><code>/resurface</code> loads real notes or fallback notes.</li>
+  <li>Three resurfacing picks and at least one trail render when enough links exist.</li>
+  <li>Refresh button advances to another ranked-pool variant.</li>
+  <li><code>npm run typecheck</code> and relevant tests pass.</li>
+  <li>Production Worker deploy completes.</li>
+  <li>Production route and notes API smoke checks pass.</li>
+</ul>
+
+</body>
+</html>

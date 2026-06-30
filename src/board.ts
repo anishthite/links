@@ -19,6 +19,7 @@ import {
   capGridNoteHeight, colCountForWidth, measureNoteHeight, prepareNote,
 } from './lib/measure';
 import { createWhiteboard, type Whiteboard } from './whiteboard';
+import { createNewspaperView } from './newspaper';
 
 type Positioned = {
   noteUuid: string;
@@ -34,7 +35,7 @@ type LayoutResult = {
   colWidth: number;
 };
 
-export type BoardView = 'masonry' | 'list' | 'whiteboard';
+export type BoardView = 'masonry' | 'list' | 'whiteboard' | 'paper';
 
 export type CreateBoardOpts = {
   /** Called when the user clicks a note tile (outside ghost-pill controls).
@@ -101,6 +102,7 @@ export function createBoard(initialView: BoardView = 'masonry', boardOpts: Creat
   /** Whiteboard renderer; lazily constructed on first switch to that view
    *  so users who never enter whiteboard mode don't pay the wiring cost. */
   let whiteboard: Whiteboard | null = null;
+  let newspaper: ReturnType<typeof createNewspaperView> | null = null;
 
   // DOM cache: uuid → node. Nodes are removed when out of viewport.
   const nodeCache = new Map<string, HTMLElement>();
@@ -163,6 +165,11 @@ export function createBoard(initialView: BoardView = 'masonry', boardOpts: Creat
 
   function render() {
     rafId = null;
+    if (view === 'paper') {
+      renderPaper();
+      return;
+    }
+
     if (visibleNotes.length === 0) {
       // Empty state — clear DOM, show placeholder.
       for (const node of nodeCache.values()) node.remove();
@@ -321,6 +328,27 @@ export function createBoard(initialView: BoardView = 'masonry', boardOpts: Creat
     whiteboard.refresh();
   }
 
+  function renderPaper(): void {
+    if (!newspaper) {
+      newspaper = createNewspaperView({
+        onOpenNote: (uuid) => {
+          if (!boardOpts.onNoteClick) return;
+          const note = allNotes.find(n => n.uuid === uuid);
+          if (!note) return;
+          const { prepared: _p, ...plain } = note;
+          boardOpts.onNoteClick(plain);
+        },
+      });
+    }
+    if (newspaper.el.parentElement !== el) {
+      for (const child of Array.from(el.children)) child.remove();
+      el.appendChild(newspaper.el);
+      nodeCache.clear();
+      el.style.height = '';
+    }
+    newspaper.render(visibleNotes.map(({ prepared: _p, ...note }) => note));
+  }
+
   /** List mode (D-031). Single-pass: mount every visible note in flow order.
    *  No measurement, no positioning, no scroll virtualization. CSS
    *  `.notes--list .note` overrides masonry's inline transform/width/height.
@@ -455,6 +483,11 @@ export function createBoard(initialView: BoardView = 'masonry', boardOpts: Creat
     nodeCache.clear();
   }
 
+  function clearRenderedChildren() {
+    for (const child of Array.from(el.children)) child.remove();
+    nodeCache.clear();
+  }
+
   // --- Public API ---
 
   return {
@@ -502,7 +535,7 @@ export function createBoard(initialView: BoardView = 'masonry', boardOpts: Creat
       // Switching modes invalidates the masonry's inline styles vs list's flow
       // vs whiteboard's transform — clear cached nodes so the next render
       // rebuilds from scratch under the correct mode.
-      clearAllNodes();
+      clearRenderedChildren();
       // Leaving whiteboard: tear down the whiteboard fully — detach DOM,
       // call destroy() so the window-level keydown/keyup listeners, pointer
       // handlers, pending position-write timers, and the minimap rAF are
@@ -570,6 +603,7 @@ function containerClassFor(view: BoardView): string {
   switch (view) {
     case 'list':       return 'notes notes--list';
     case 'whiteboard': return 'notes notes--whiteboard';
+    case 'paper':      return 'notes notes--paper';
     case 'masonry':    return 'notes';
   }
 }

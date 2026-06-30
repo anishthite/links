@@ -14,8 +14,9 @@ This is the same basic stack and surface area as `~/workspace/board`:
 
 The main addition is **link-backed notes**:
 - paste a URL in the add panel
-- the Worker fetches and extracts metadata/text
+- the Worker saves immediately, then fetches and extracts metadata/text in the background
 - the note stores `source_*` metadata in D1
+- longer extracts are stored as `note_source_chunks`
 - search, chat, and similar-note retrieval use the saved extract too
 - note cards and the editor expose the original source link
 
@@ -71,6 +72,32 @@ npm run deploy
 - `source_content_markdown`
 - `source_status`
 - `source_last_error`
+- `source_final_url`
+- `source_extractor`
+- `source_status_code`
+- `source_content_length`
+- `source_content_truncated`
+
+Longer source text is stored in `note_source_chunks` with one row per chunk.
+
+Optional external scraper fallback:
+
+```sh
+LINK_SCRAPER_PROVIDER=firecrawl # or jina
+LINK_SCRAPER_API_KEY=...
+LINK_SCRAPER_ENDPOINT=...       # optional self-hosted/override endpoint
+LINK_BACKFILL_LIMIT=5           # hourly missing-link scrape backfill; 0 disables
+```
+
+Without those vars, extraction stays local: YouTube transcript special case, Readability, then HTML body stripping.
+
+Manual scrape backfill:
+
+```sh
+curl -X POST https://links.anishthite.workers.dev/api/notes/backfill-link-sources \
+  -H 'content-type: application/json' \
+  -d '{"limit":5}'
+```
 
 ## Important routes
 

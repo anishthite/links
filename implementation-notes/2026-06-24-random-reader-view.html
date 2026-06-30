@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Spec — random-reader-view</title>
+<meta name="task" content="Add a random saved-link reading view.">
+<meta name="date-started" content="2026-06-24">
+<meta name="date-updated" content="2026-06-24">
+<meta name="status" content="shipped">
+<meta name="blast-radius" content="low">
+<meta name="tags" content="links,ui,reader,random">
+<meta name="related" content="implementation-notes/2026-06-23-title-only-link-cards.html,implementation-notes/2026-06-22-links-board-parity.html">
+<style>
+  body { font: 14px/1.45 -apple-system, system-ui, sans-serif; max-width: 880px; margin: 1.5rem auto; padding: 0 1rem; color: #111; }
+  h1 { font-size: 20px; margin: 0 0 .25rem; }
+  h2 { font-size: 15px; margin: 1.4rem 0 .4rem; border-bottom: 1px solid #ddd; padding-bottom: .2rem; }
+  table { border-collapse: collapse; width: 100%; margin: .4rem 0 .8rem; }
+  th, td { border: 1px solid #ddd; padding: 4px 8px; text-align: left; vertical-align: top; }
+  th { background: #f6f6f6; font-weight: 600; }
+  code, pre { font-family: ui-monospace, Menlo, monospace; }
+  code { background: #f1f1f1; padding: 1px 4px; border-radius: 3px; font-size: 12.5px; }
+  ul, ol { margin: .3rem 0 .8rem 1.2rem; padding: 0; }
+  li { margin: .15rem 0; }
+  .blast-low { color: #2a7a2a; }
+  .meta { color: #555; font-size: 12.5px; margin-bottom: .8rem; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 2px 14px; font-size: 13px; margin: .4rem 0 1rem; }
+  .kv b { color: #444; font-weight: 600; }
+</style>
+</head>
+<body>
+<h1>Add random reader view</h1>
+<p class="meta">
+  <code>main</code> · worktree <code>/Users/anishthite/workspace/links</code> · 2026-06-24 · status <b>shipped</b> · blast <span class="blast-low">low</span>
+</p>
+
+<h2>Summary</h2>
+<div class="kv">
+  <b>Goal</b><div>Add a reader mode that selects one saved source link at random and offers an open-link action plus reshuffle.</div>
+  <b>Source</b><div>Use loaded <code>Note[]</code> rows filtered to notes with <code>sourceUrl</code>.</div>
+  <b>Surface</b><div>Header <code>read</code> mode and direct <code>/read</code> path.</div>
+  <b>Schema</b><div>None.</div>
+  <b>Mobile</b><div>Reader panel stacks actions and uses viewport-safe padding.</div>
+  <b>Open Qs</b><div>0.</div>
+</div>
+
+<h2>UI layout</h2>
+<ol>
+  <li><b>Header</b>: add one icon button that switches to <code>read</code> mode.</li>
+  <li><b>Reader</b>: show host, title, excerpt, tags, <code>open link</code>, <code>another</code>, and <code>note</code>.</li>
+  <li><b>Direct path</b>: load <code>/read</code> as the SPA and initialize the same mode.</li>
+</ol>
+
+<h2>Files</h2>
+<table>
+  <tr><th>Path</th><th>Kind</th><th>Delta</th></tr>
+  <tr><td><code>src/random-reader.ts</code></td><td>new</td><td>Render and own random source-link selection.</td></tr>
+  <tr><td><code>src/main.ts</code></td><td>touch</td><td>Register <code>read</code> mode, route boot, and note synchronization.</td></tr>
+  <tr><td><code>src/header.ts</code></td><td>touch</td><td>Add the header control and <code>BoardView</code> variant.</td></tr>
+  <tr><td><code>src/styles/board.css</code></td><td>touch</td><td>Style the reader panel using existing paper/ink variables.</td></tr>
+  <tr><td><code>worker/index.ts</code></td><td>touch</td><td>Serve <code>/read</code> through the built SPA asset.</td></tr>
+  <tr><td><code>tests/random-reader.test.ts</code></td><td>new</td><td>Cover link filtering, random choice, and reshuffle behavior.</td></tr>
+</table>
+
+<h2>Decisions</h2>
+<table>
+  <tr><th>ID</th><th>Choice · Rationale</th></tr>
+  <tr><td>D-001</td><td>Open external pages in a new tab instead of embedding them. Many publishers block iframe embedding.</td></tr>
+  <tr><td>D-002</td><td>Pick client-side from already-loaded notes. Avoids a new API or D1 query for an additive UI view.</td></tr>
+  <tr><td>D-003</td><td>Support <code>/read</code> as an SPA boot path. Keeps the page bookmarkable without a second app shell.</td></tr>
+  <tr><td>D-004</td><td>Limit candidates to <code>http</code> and <code>https</code> URLs. The reader is for web articles, not arbitrary URI handlers.</td></tr>
+</table>
+
+<h2>Tradeoffs</h2>
+<table>
+  <tr><th>ID</th><th>Picked over Rejected · Reason</th></tr>
+  <tr><td>T-001</td><td><code>button-opened tab</code> over <code>automatic popup</code>. Browser popup rules punish non-user-triggered opens.</td></tr>
+  <tr><td>T-002</td><td><code>read mode</code> over <code>server redirect</code>. The reader can reshuffle without losing the board.</td></tr>
+</table>
+
+<h2>Assumptions</h2>
+<ul>
+  <li>A-001 · Notes without <code>sourceUrl</code> are not candidates. If wrong: add a note-body reading fallback.</li>
+</ul>
+
+<h2>Reversibility</h2>
+<p>R-001 · <span class="blast-low">low</span>. Remove the reader component, header mode, route rewrite, test, and CSS block to restore the prior app.</p>
+
+<h2>Definition of done</h2>
+<ul>
+  <li><code>/read</code> and the header control show a random saved link.</li>
+  <li><code>another</code> avoids the current link when multiple candidates exist.</li>
+  <li><code>npm test -- tests/random-reader.test.ts</code>, <code>npm run typecheck</code>, and <code>npm run build</code> pass.</li>
+</ul>
+</body>
+</html>

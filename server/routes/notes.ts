@@ -14,7 +14,8 @@ import { and, desc, eq, isNull, ne } from 'drizzle-orm';
 import type { Env, Variables } from '../env';
 import { db, schema } from '../../db/client';
 import { MAX_TAGS_PER_NOTE, MAX_TEXT_LEN, buildNoteInsert, cleanTags } from '../lib/note-write';
-import { buildLinkNoteInsert, refreshLinkNote } from '../lib/link-source';
+import { buildLinkNoteInsert, refreshLinkNote, replaceLinkSourceChunks } from '../lib/link-source';
+import { runLinkScrapeBackfill } from '../lib/link-backfill';
 import { absorbInlineHashtags, unionTagsOrdered } from '../../src/lib/tags';
 
 export const notesRoutes = new Hono<{ Bindings: Env; Variables: Variables }>();
@@ -51,10 +52,25 @@ notesRoutes.post('/', async (c) => {
     if (!hasSourceUrl && (typeof body.text !== 'string' || body.text.trim().length === 0)) {
       return c.json({ error: 'text or sourceUrl required' }, 400);
     }
-    const row = hasSourceUrl
-      ? await buildLinkNoteInsert({ sourceUrl: body.sourceUrl, text: body.text, tags: body.tags })
-      : buildNoteInsert(body.tags, body.text as string);
-    await db(c.env.DB).insert(schema.notes).values(row);
+    const d = db(c.env.DB);
+    if (hasSourceUrl) {
+      const row = buildLinkNoteInsert({ sourceUrl: body.sourceUrl, text: body.text, tags: body.tags });
+      const existing = await findNoteByNormalizedSourceUrl(d, row.sourceUrlNormalized);
+      if (existing) return c.json({ note: toWire(existing), duplicate: true });
+
+      await d.insert(schema.notes).values(row);
+      try {
+        c.executionCtx.waitUntil(persistLinkRefresh(c.env, row.uuid, row).catch((err) => {
+          console.error('[notes] background link extraction failed', row.uuid, err);
+        }));
+      } catch {
+        // No ExecutionContext in direct app.fetch() tests; the stored pending row is enough there.
+      }
+      return c.json({ note: { ...row } }, 201);
+    }
+
+    const row = buildNoteInsert(body.tags, body.text as string);
+    await d.insert(schema.notes).values(row);
     return c.json({ note: { ...row } }, 201);
   } catch (err) {
     console.error('[notes] create failed', err);
@@ -275,6 +291,18 @@ notesRoutes.post('/positions', async (c) => {
   }
 });
 
+// POST /api/notes/backfill-link-sources — fill missing scrape metadata/chunks.
+notesRoutes.post('/backfill-link-sources', async (c) => {
+  try {
+    const body = (await c.req.json().catch(() => ({}))) as { limit?: unknown };
+    const result = await runLinkScrapeBackfill(c.env, { limit: body.limit });
+    return c.json(result);
+  } catch (err) {
+    console.error('[notes] link scrape backfill failed', err);
+    return c.json({ error: 'link scrape backfill failed', detail: String(err) }, 500);
+  }
+});
+
 // POST /api/notes/:uuid/refresh-link — refetch source metadata/text.
 notesRoutes.post('/:uuid/refresh-link', async (c) => {
   const uuid = c.req.param('uuid');
@@ -285,8 +313,9 @@ notesRoutes.post('/:uuid/refresh-link', async (c) => {
     const existing = await d.select().from(schema.notes).where(eq(schema.notes.uuid, uuid)).get();
     if (!existing) return c.json({ error: 'note not found' }, 404);
     if (!existing.sourceUrl) return c.json({ error: 'note has no source url' }, 400);
-    const patch = await refreshLinkNote(existing);
-    await d.update(schema.notes).set({ ...patch, updatedAt: Date.now() }).where(eq(schema.notes.uuid, uuid)).run();
+    const { notePatch, chunks } = await refreshLinkNote(existing, c.env);
+    await d.update(schema.notes).set({ ...notePatch, updatedAt: Date.now() }).where(eq(schema.notes.uuid, uuid)).run();
+    await replaceLinkSourceChunks(c.env.DB, uuid, chunks);
     const joined = await d
       .select({ note: schema.notes, sugg: schema.tagSuggestions })
       .from(schema.notes)
@@ -433,6 +462,16 @@ notesRoutes.post('/:uuid/reject-suggestion', async (c) => {
 
 // --- Helpers ---
 
+async function persistLinkRefresh(env: Env, uuid: string, existing: { sourceUrl?: string | null; text: string; sourceDescription?: string | null; sourceTitle?: string | null }) {
+  const { notePatch, chunks } = await refreshLinkNote(existing, env);
+  const d = db(env.DB);
+  await d.update(schema.notes)
+    .set({ ...notePatch, updatedAt: Date.now() })
+    .where(eq(schema.notes.uuid, uuid))
+    .run();
+  await replaceLinkSourceChunks(env.DB, uuid, chunks);
+}
+
 function safeParseTags(jsonStr: string | null | undefined): string[] {
   if (!jsonStr) return [];
   try {
@@ -466,4 +505,21 @@ function toWire(row: JoinRow): Record<string, unknown> {
     }
   }
   return wire;
+}
+
+async function findNoteByNormalizedSourceUrl(d: ReturnType<typeof db>, normalized: string): Promise<JoinRow | undefined> {
+  return await d
+    .select({ note: schema.notes, sugg: schema.tagSuggestions })
+    .from(schema.notes)
+    .leftJoin(
+      schema.tagSuggestions,
+      and(
+        eq(schema.tagSuggestions.uuid, schema.notes.uuid),
+        isNull(schema.tagSuggestions.appliedAt),
+        ne(schema.tagSuggestions.confidence, 'high'),
+      ),
+    )
+    .where(eq(schema.notes.sourceUrlNormalized, normalized))
+    .orderBy(desc(schema.notes.updatedAt))
+    .get();
 }

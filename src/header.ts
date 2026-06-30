@@ -33,7 +33,7 @@ import { escapeHtml, escapeAttr } from './lib/html-escape';
 import { noteDisplayTitle, notePreviewText, noteSourceHost } from './lib/link-note';
 import { createTagChips } from './tag-chips';
 
-export type BoardView = 'masonry' | 'list' | 'whiteboard' | 'agent';
+export type BoardView = 'masonry' | 'list' | 'whiteboard' | 'paper' | 'agent';
 
 type NoteWriteResult = Note | null | void;
 
@@ -43,6 +43,7 @@ type HeaderOpts = {
   onUpdateNote: (uuid: string, patch: { text: string; tags: string[] }) => Promise<NoteWriteResult> | NoteWriteResult;
   onFilterChange: (active: Set<string>) => void;
   onViewChange: (view: BoardView) => void;
+  onOpenResurface: () => void;
   initialView: BoardView;
   /** Called when the user toggles "show pending suggestions" in the filter panel. */
   onShowSuggestionsChange?: (show: boolean) => void;
@@ -94,6 +95,18 @@ export function createHeader(opts: HeaderOpts): {
         <!-- glyph swapped at runtime by setView() so it shows the OPPOSITE
              of the current mode (i.e. the action about to happen). -->
         <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true" data-view-icon></svg>
+      </button>
+      <button class="iconbtn" data-paper-view aria-label="paper view" title="paper view" type="button">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path d="M3 2.5h8.8c.7 0 1.2.5 1.2 1.2v8.6c0 .7-.5 1.2-1.2 1.2H4.2c-.7 0-1.2-.5-1.2-1.2V2.5Z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+          <path d="M5 5h5M5 7.5h6M5 10h2.2M8.5 10H11" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </button>
+      <button class="iconbtn" data-resurface-view aria-label="smart resurfacing" title="smart resurfacing" type="button">
+        <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+          <path d="M3 2.8h4.2c.8 0 1.4.2 1.8.7.4-.5 1-.7 1.8-.7H13v10.8h-2.4c-.7 0-1.2.2-1.6.6-.4-.4-.9-.6-1.6-.6H3V2.8z" stroke="currentColor" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+          <path d="M9 3.5v10.2M4.8 5.5h2.3M10.9 5.5h.9M4.8 7.8h2.3M10.9 7.8h.9" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
       </button>
       <button class="iconbtn agent-mode-btn" data-agent-view aria-label="agent mode" title="agent mode" type="button">agent</button>
     </div>
@@ -232,7 +245,7 @@ export function createHeader(opts: HeaderOpts): {
     opts.initialShowSuggestions ?? true,
     opts.onShowSuggestionsChange,
   );
-  const viewToggle = createViewToggle(el, opts.initialView, opts.onViewChange);
+  const viewToggle = createViewToggle(el, opts.initialView, opts.onViewChange, opts.onOpenResurface);
   const themeToggle = createThemeToggle(el);
 
   // --- Global keybindings ---
@@ -358,6 +371,11 @@ const VIEW_GLYPH: Record<BoardView, string> = {
     '<path d="M2.5 3.5h11M2.5 8h11M2.5 12.5h7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>' +
     '<circle cx="11.8" cy="12.3" r="2.2" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
     '<path d="M13.5 14l1.2 1.2" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>',
+  paper:
+    '<rect x="2.5" y="2.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
+    '<rect x="9.5" y="2.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
+    '<rect x="2.5" y="9.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
+    '<rect x="9.5" y="9.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>',
   agent:
     '<rect x="2.5" y="2.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
     '<rect x="9.5" y="2.5" width="4" height="4" stroke="currentColor" stroke-width="1.2" fill="none"/>' +
@@ -380,9 +398,12 @@ function createViewToggle(
   el: HTMLElement,
   initialView: BoardView,
   onChange: (view: BoardView) => void,
+  onOpenResurface: () => void,
 ): { trigger: () => void; setView: (v: BoardView) => void } {
   const viewBtn = el.querySelector<HTMLButtonElement>('[data-view]')!;
   const viewIcon = viewBtn.querySelector<SVGElement>('[data-view-icon]')!;
+  const paperBtn = el.querySelector<HTMLButtonElement>('[data-paper-view]')!;
+  const resurfaceBtn = el.querySelector<HTMLButtonElement>('[data-resurface-view]')!;
   const agentBtn = el.querySelector<HTMLButtonElement>('[data-agent-view]')!;
   let currentView: BoardView = initialView;
 
@@ -390,6 +411,7 @@ function createViewToggle(
     viewIcon.innerHTML = VIEW_GLYPH[currentView];
     viewBtn.title = viewToggleTitle(currentView);
     viewBtn.setAttribute('aria-label', viewBtn.title);
+    paperBtn.classList.toggle('active', currentView === 'paper');
     agentBtn.classList.toggle('active', currentView === 'agent');
   }
   paintViewIcon();
@@ -404,6 +426,15 @@ function createViewToggle(
     currentView = 'agent';
     paintViewIcon();
     onChange(currentView);
+  });
+  paperBtn.addEventListener('click', () => {
+    if (currentView === 'paper') return;
+    currentView = 'paper';
+    paintViewIcon();
+    onChange(currentView);
+  });
+  resurfaceBtn.addEventListener('click', () => {
+    onOpenResurface();
   });
 
   return {
